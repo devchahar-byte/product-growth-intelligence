@@ -534,10 +534,16 @@ class AnalyticsHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         url = urlparse(self.path)
         if url.path == '/' or url.path == '/index.html':
+            index_path = os.path.join(os.path.dirname(__file__), 'index.html')
+            if os.path.exists(index_path):
+                with open(index_path, 'r', encoding='utf-8') as f:
+                    content = f.read()
+            else:
+                content = HTML_PAGE
             self.send_response(200)
             self.send_header('Content-Type', 'text/html; charset=utf-8')
             self.end_headers()
-            self.wfile.write(HTML_PAGE.encode('utf-8'))
+            self.wfile.write(content.encode('utf-8'))
         elif url.path == '/api/real':
             real_file = os.path.join(os.path.dirname(__file__), 'data', 'real_ecommerce_events.csv')
             if os.path.exists(real_file):
