@@ -1,0 +1,63 @@
+name: SQL Lint & Project Validation
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    name: Validate SQL Files and Python
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Python dependencies
+        run: |
+          pip install sqlfluff pyflakes
+
+      - name: Lint SQL files with sqlfluff
+        run: |
+          sqlfluff lint sql/ --dialect bigquery --ignore parsing || true
+          echo "SQL lint complete (warnings are non-blocking in portfolio mode)"
+
+      - name: Validate Python syntax
+        run: |
+          python -m py_compile python/scripts/stats_helpers.py
+          echo "Python syntax valid"
+
+      - name: Check required files exist
+        run: |
+          required_files=(
+            "README.md"
+            "sql/01_schema_exploration/01_explore_schema.sql"
+            "sql/02_user_session_layer/02_user_session_summary.sql"
+            "sql/03_funnel_analysis/03_conversion_funnel.sql"
+            "sql/04_channel_analysis/04_channel_conversion.sql"
+            "sql/05_product_revenue/05_product_analysis.sql"
+            "sql/06_segment_analysis/06_segment_analysis.sql"
+            "sql/07_data_quality/07_data_quality_checks.sql"
+            "python/notebooks/01_eda_and_validation.py"
+            "python/scripts/stats_helpers.py"
+            "reports/product_growth_report.md"
+            "reports/experiment_proposal.md"
+            "powerbi/schema/powerbi_schema.md"
+            "docs/metric_definitions.md"
+          )
+          for f in "${required_files[@]}"; do
+            if [ ! -f "$f" ]; then
+              echo "MISSING: $f"
+              exit 1
+            else
+              echo "OK: $f"
+            fi
+          done
+          echo "All required files present."

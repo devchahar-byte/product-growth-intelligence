@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+*.egg-info/
+dist/
+build/
+.eggs/
+.pytest_cache/
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# Environment
+.env
+*.env
+service_account.json
+application_default_credentials.json
+
+# OS
+.DS_Store
+Thumbs.db
+*.swp
+*~
+
+# Power BI
+*.pbix
+*.pbit
+
+# Reports (generated)
+reports/*.png
+reports/*.csv
+
+# Google Cloud
+*.json
+!powerbi/schema/*.json
+
+# IDE
+.vscode/
+.idea/
+*.code-workspace
