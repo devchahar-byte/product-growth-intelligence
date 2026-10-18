@@ -555,6 +555,17 @@ class AnalyticsHandler(BaseHTTPRequestHandler):
             self.send_header('Content-Type', 'application/json')
             self.end_headers()
             self.wfile.write(json.dumps(res).encode('utf-8'))
+        elif url.path == '/api/ga_real':
+            ga_file = os.path.join(os.path.dirname(__file__), 'data', 'google_analytics_real_events.csv')
+            if os.path.exists(ga_file):
+                with open(ga_file, 'r', encoding='utf-8') as f:
+                    res = analyze_events_csv(f)
+            else:
+                res = {"error": "Google Analytics dataset file not found"}
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps(res).encode('utf-8'))
         elif url.path == '/api/sample':
             sample_file = os.path.join(os.path.dirname(__file__), 'data', 'sample_ecommerce_events.csv')
             if not os.path.exists(sample_file):

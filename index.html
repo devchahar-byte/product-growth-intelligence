@@ -153,7 +153,6 @@
       transform: translateY(-1px);
     }
 
-    /* Main Container & Page Switcher */
     main {
       flex: 1;
       max-width: 1300px;
@@ -178,7 +177,7 @@
     /* Hero / Header within Overview */
     .hero {
       text-align: center;
-      padding: 40px 0 50px;
+      padding: 30px 0 40px;
       max-width: 850px;
       margin: 0 auto;
     }
@@ -216,7 +215,7 @@
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
       gap: 18px;
-      margin-bottom: 40px;
+      margin-bottom: 30px;
     }
     .kpi-card {
       background: var(--surface);
@@ -318,54 +317,58 @@
       color: var(--text-muted);
     }
 
-    /* Interactive Live Tool Section */
-    .tool-box {
-      background: var(--surface-elevated);
-      border: 1px solid var(--border-hover);
+    /* Dataset Selector Strip */
+    .dataset-strip-container {
+      background: var(--surface);
+      border: 1px solid var(--border);
       border-radius: var(--radius);
-      padding: 32px;
+      padding: 24px;
       margin-bottom: 30px;
-      position: relative;
     }
-    .tool-controls {
+    .dataset-strip-header {
       display: flex;
-      gap: 12px;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
       flex-wrap: wrap;
-      margin-bottom: 24px;
+      gap: 12px;
     }
-    .btn-tool {
-      background: linear-gradient(135deg, var(--purple-primary), var(--purple-dark));
-      color: white;
-      border: none;
-      padding: 12px 22px;
+    .dataset-btn-list {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .ds-btn {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 10px 18px;
       border-radius: 10px;
-      font-weight: 700;
-      font-size: 0.95rem;
+      font-size: 0.88rem;
+      font-weight: 600;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      transition: all 0.2s ease;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .ds-btn:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text);
+    }
+    .ds-btn.active {
+      background: linear-gradient(135deg, var(--purple-primary), var(--purple-dark));
+      color: #fff;
+      border-color: transparent;
       box-shadow: 0 4px 15px var(--purple-glow);
     }
-    .btn-tool:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 25px var(--purple-glow);
+    .upload-btn {
+      background: rgba(168, 85, 247, 0.1);
+      border: 1px dashed var(--purple-primary);
+      color: var(--purple-light);
     }
-    .btn-secondary {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid var(--border);
-      color: #fff;
-      padding: 12px 20px;
-      border-radius: 10px;
-      font-weight: 600;
-      font-size: 0.95rem;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-    .btn-secondary:hover {
-      background: rgba(255, 255, 255, 0.09);
-      border-color: var(--border-hover);
+    .upload-btn:hover {
+      background: rgba(168, 85, 247, 0.2);
     }
 
     /* Tables */
@@ -445,16 +448,16 @@
 
     <!-- Page Switcher Tabs -->
     <div class="nav-tabs">
-      <button class="nav-btn active" onclick="switchPage('page-overview')">
+      <button class="nav-btn active" onclick="switchPage('page-overview', this)">
         <i class="fa-solid fa-chart-pie"></i> Overview
       </button>
-      <button class="nav-btn" onclick="switchPage('page-tool')">
+      <button class="nav-btn" onclick="switchPage('page-tool', this)">
         <i class="fa-solid fa-play"></i> Live Tool
       </button>
-      <button class="nav-btn" onclick="switchPage('page-dataset')">
+      <button class="nav-btn" onclick="switchPage('page-dataset', this)">
         <i class="fa-solid fa-database"></i> Datasets
       </button>
-      <button class="nav-btn" onclick="switchPage('page-methodology')">
+      <button class="nav-btn" onclick="switchPage('page-methodology', this)">
         <i class="fa-solid fa-vial-circle-check"></i> Methodology
       </button>
     </div>
@@ -469,51 +472,62 @@
   <main>
 
     <!-- ========================================================
-         PAGE 1: OVERVIEW & EXECUTIVE DASHBOARD
+         UNIVERSAL DATASET SELECTOR STRIP
+         ======================================================== -->
+    <div class="dataset-strip-container">
+      <div class="dataset-strip-header">
+        <div>
+          <span style="font-size: 0.8rem; text-transform: uppercase; color: var(--purple-light); font-weight: 700; letter-spacing: 0.05em;">Active Working Dataset</span>
+          <h3 id="currentDatasetTitle" style="font-size: 1.25rem; font-weight: 700; color: #fff; margin-top: 2px;">
+            1. Real E-Commerce Store (9,381 Events)
+          </h3>
+        </div>
+        <label class="ds-btn upload-btn">
+          <i class="fa-solid fa-cloud-arrow-up"></i> Upload Custom CSV
+          <input type="file" id="universalCsvInput" accept=".csv" style="display: none;" onchange="handleUserCsvUpload(event)">
+        </label>
+      </div>
+
+      <!-- Button List with Dynamic User Datasets -->
+      <div class="dataset-btn-list" id="datasetButtonList">
+        <!-- Will be populated dynamically by JS -->
+      </div>
+    </div>
+
+    <!-- ========================================================
+         PAGE 1: OVERVIEW DASHBOARD
          ======================================================== -->
     <div id="page-overview" class="page-section active">
       <div class="hero">
-        <div class="hero-badge"><i class="fa-solid fa-sparkles"></i> GA4 E-Commerce Analytics & Statistical Inference</div>
-        <h1>Product Growth Intelligence Platform</h1>
-        <p>Uncovering conversion leakage, evaluating channel ROI, and architecting targeted A/B experiment proposals using real e-commerce event streams.</p>
+        <div class="hero-badge"><i class="fa-solid fa-sparkles"></i> End-to-End Product Analytics Engine</div>
+        <h1>E-Commerce Growth Intelligence</h1>
+        <p>Uncovering funnel drop-off resistance, evaluating acquisition channel ROI, and architecting targeted conversion experiments.</p>
       </div>
 
       <!-- Live Dynamic KPI Strip -->
       <div class="kpi-row">
         <div class="kpi-card">
-          <div class="kpi-header">
-            <span class="kpi-title">Total Sessions</span>
-            <i class="fa-solid fa-users kpi-icon"></i>
-          </div>
+          <div class="kpi-header"><span class="kpi-title">Total Sessions</span><i class="fa-solid fa-users kpi-icon"></i></div>
           <div class="kpi-num" id="ovSessions">5,000</div>
-          <div class="kpi-sub">Across 9,381 event interactions</div>
+          <div class="kpi-sub" id="ovEventsSub">9,381 total event interactions</div>
         </div>
 
         <div class="kpi-card">
-          <div class="kpi-header">
-            <span class="kpi-title">Purchase Conversions</span>
-            <i class="fa-solid fa-cart-shopping kpi-icon"></i>
-          </div>
+          <div class="kpi-header"><span class="kpi-title">Purchases</span><i class="fa-solid fa-cart-shopping kpi-icon"></i></div>
           <div class="kpi-num" id="ovPurchases">826</div>
-          <div class="kpi-sub">Completed order checkouts</div>
+          <div class="kpi-sub">Completed transactions</div>
         </div>
 
         <div class="kpi-card">
-          <div class="kpi-header">
-            <span class="kpi-title">Overall CVR</span>
-            <i class="fa-solid fa-arrow-trend-up kpi-icon"></i>
-          </div>
+          <div class="kpi-header"><span class="kpi-title">Purchase CVR</span><i class="fa-solid fa-arrow-trend-up kpi-icon"></i></div>
           <div class="kpi-num" style="color: var(--purple-light);" id="ovCVR">16.52%</div>
-          <div class="kpi-sub">Baseline purchase conversion rate</div>
+          <div class="kpi-sub">Overall baseline conversion rate</div>
         </div>
 
         <div class="kpi-card">
-          <div class="kpi-header">
-            <span class="kpi-title">Observed Revenue</span>
-            <i class="fa-solid fa-dollar-sign kpi-icon"></i>
-          </div>
+          <div class="kpi-header"><span class="kpi-title">Observed Revenue</span><i class="fa-solid fa-dollar-sign kpi-icon"></i></div>
           <div class="kpi-num" id="ovRev">$87,975</div>
-          <div class="kpi-sub">Average Order Value: <strong>$106.51</strong></div>
+          <div class="kpi-sub" id="ovAovSub">AOV: $106.51</div>
         </div>
       </div>
 
@@ -522,7 +536,7 @@
         <div class="card">
           <div class="card-header">
             <div class="card-title"><i class="fa-solid fa-filter"></i> 5-Stage Conversion Funnel</div>
-            <span class="badge-pill">Dynamic Telemetry</span>
+            <span class="badge-pill">Step Volumes</span>
           </div>
           <canvas id="ovFunnelChart" height="230"></canvas>
         </div>
@@ -530,23 +544,15 @@
         <div class="card">
           <div class="card-header">
             <div class="card-title"><i class="fa-solid fa-triangle-exclamation"></i> Funnel Stage Bottlenecks</div>
-            <span class="badge-pill">Drop-off Rates</span>
+            <span class="badge-pill">Step Drop-off</span>
           </div>
-          <table>
+          <table id="ovFunnelTable">
             <thead>
               <tr><th>Funnel Stage</th><th>Sessions</th><th>% of Top</th><th>Drop-off</th></tr>
             </thead>
-            <tbody>
-              <tr><td><strong>page_view</strong></td><td class="mono">5,000</td><td class="mono">100.0%</td><td>—</td></tr>
-              <tr><td><strong>add_to_cart</strong></td><td class="mono">1,553</td><td class="mono">31.06%</td><td><span class="badge-drop">-68.94%</span></td></tr>
-              <tr><td><strong>checkout_start</strong></td><td class="mono">1,103</td><td class="mono">22.06%</td><td><span class="badge-drop">-28.98%</span></td></tr>
-              <tr><td><strong>payment_info</strong></td><td class="mono">899</td><td class="mono">17.98%</td><td><span class="badge-drop">-18.50%</span></td></tr>
-              <tr><td><strong>purchase</strong></td><td class="mono">826</td><td class="mono">16.52%</td><td><span class="badge-drop">-8.12%</span></td></tr>
-            </tbody>
+            <tbody></tbody>
           </table>
-          <div style="margin-top: 18px; font-size: 0.85rem; color: var(--text-muted); border-top: 1px solid var(--border); padding-top: 12px;">
-            🚨 <strong>Primary Bottleneck:</strong> 68.94% drop occurs between initial page view and cart addition, signalling product discovery resistance.
-          </div>
+          <div id="ovBottleneckText" style="margin-top: 18px; font-size: 0.85rem; color: var(--text-muted); border-top: 1px solid var(--border); padding-top: 12px;"></div>
         </div>
       </div>
 
@@ -555,7 +561,7 @@
         <div class="card">
           <div class="card-header">
             <div class="card-title"><i class="fa-solid fa-mobile-screen"></i> Device Category Disparity</div>
-            <span class="badge-pill">Mobile vs. Desktop</span>
+            <span class="badge-pill">Conversion Gap</span>
           </div>
           <canvas id="ovDeviceChart" height="200"></canvas>
         </div>
@@ -563,152 +569,152 @@
         <div class="card">
           <div class="card-header">
             <div class="card-title"><i class="fa-solid fa-bullhorn"></i> Channel Yield & Acquisition</div>
-            <span class="badge-pill">First-Touch CVR</span>
+            <span class="badge-pill">Performance by Channel</span>
           </div>
-          <table>
+          <table id="ovChannelTable">
             <thead>
               <tr><th>Traffic Channel</th><th>Sessions</th><th>Purchases</th><th>CVR</th></tr>
             </thead>
-            <tbody>
-              <tr><td><strong>organic</strong></td><td class="mono">2,082</td><td class="mono">344</td><td class="mono" style="color: var(--purple-light);">16.52%</td></tr>
-              <tr><td><strong>social</strong></td><td class="mono">1,079</td><td class="mono">178</td><td class="mono" style="color: var(--purple-light);">16.50%</td></tr>
-              <tr><td><strong>paid_ads</strong></td><td class="mono">1,071</td><td class="mono">177</td><td class="mono" style="color: var(--purple-light);">16.53%</td></tr>
-              <tr><td><strong>email</strong></td><td class="mono">768</td><td class="mono">127</td><td class="mono" style="color: var(--purple-light);">16.54%</td></tr>
-            </tbody>
+            <tbody></tbody>
           </table>
         </div>
       </div>
     </div>
 
     <!-- ========================================================
-         PAGE 2: INTERACTIVE LIVE TOOL (CSV UPLOAD & TEST ENGINE)
+         PAGE 2: LIVE TOOL & A/B TEST CALCULATOR
          ======================================================== -->
     <div id="page-tool" class="page-section">
       <div class="card-header" style="margin-bottom: 24px;">
         <div>
-          <h2><i class="fa-solid fa-terminal" style="color: var(--purple-primary);"></i> Interactive E-Commerce Tool</h2>
+          <h2 style="font-size: 1.8rem; font-weight: 800; color: #fff;"><i class="fa-solid fa-terminal" style="color: var(--purple-primary);"></i> Dynamic Analysis Tool</h2>
           <p style="color: var(--text-muted); font-size: 0.95rem; margin-top: 4px;">Run dynamic funnel calculations and live A/B hypothesis tests across custom datasets.</p>
         </div>
-        <a href="http://localhost:8501" target="_blank" class="btn-outline">
-          <i class="fa-solid fa-arrow-up-right-from-square"></i> Open Local Backend Server (Port 8501)
-        </a>
       </div>
 
-      <div class="tool-box">
-        <div class="tool-controls">
-          <button class="btn-tool" onclick="loadRealApiData()">
-            <i class="fa-solid fa-bolt"></i> Load 9,381 Real Events
+      <!-- Dynamic Funnel & Bottlenecks in Live Tool -->
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title"><i class="fa-solid fa-filter"></i> Dynamic Funnel Graph</div>
+            <span class="badge-pill">Active Telemetry</span>
+          </div>
+          <canvas id="toolFunnelChart" height="230"></canvas>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title"><i class="fa-solid fa-triangle-exclamation"></i> Funnel Stage Bottlenecks</div>
+            <span class="badge-pill">Drop-off Rates</span>
+          </div>
+          <table id="toolFunnelTable">
+            <thead>
+              <tr><th>Funnel Stage</th><th>Sessions</th><th>% of Top</th><th>Drop-off</th></tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+          <div id="toolBottleneckText" style="margin-top: 18px; font-size: 0.85rem; color: var(--text-muted); border-top: 1px solid var(--border); padding-top: 12px;"></div>
+        </div>
+      </div>
+
+      <!-- Channel Yield & A/B Testing in Live Tool -->
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title"><i class="fa-solid fa-bullhorn"></i> Channel Yield & Acquisition</div>
+            <span class="badge-pill">Channel CVR</span>
+          </div>
+          <table id="toolChannelTable">
+            <thead>
+              <tr><th>Traffic Channel</th><th>Sessions</th><th>Purchases</th><th>CVR</th></tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title"><i class="fa-solid fa-calculator"></i> Live A/B Experiment Calculator</div>
+            <span class="badge-pill">Z-Score & P-Value</span>
+          </div>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 16px;">Test whether observed lift between variants is statistically significant.</p>
+          <div style="display: flex; gap: 10px; margin-bottom: 12px;">
+            <input type="number" id="abCtrl" value="120" placeholder="Control Purchases" style="width: 50%; padding: 10px; background: var(--surface-elevated); color: #fff; border: 1px solid var(--border); border-radius: 8px;">
+            <input type="number" id="abTreat" value="160" placeholder="Treatment Purchases" style="width: 50%; padding: 10px; background: var(--surface-elevated); color: #fff; border: 1px solid var(--border); border-radius: 8px;">
+          </div>
+          <button class="ds-btn" style="width: 100%; justify-content: center; background: linear-gradient(135deg, var(--purple-primary), var(--purple-dark)); color: #fff; font-weight: 700;" onclick="computeSignificance()">
+            Run Two-Proportion Z-Test
           </button>
-          <button class="btn-secondary" onclick="loadSampleApiData()">
-            <i class="fa-solid fa-database"></i> Load GA4 Sample Dataset
-          </button>
-          <label class="btn-secondary" style="cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
-            <i class="fa-solid fa-upload"></i> Upload Custom CSV
-            <input type="file" id="toolFileInput" accept=".csv" style="display: none;" onchange="handleFileUpload(event)">
-          </label>
-        </div>
-
-        <div id="toolStatus" style="font-size: 0.85rem; color: var(--purple-light); font-weight: 600; margin-bottom: 16px;">
-          ✓ Currently displaying: Real Public E-Commerce Dataset (9,381 events)
-        </div>
-
-        <!-- Dynamic Output Display -->
-        <div class="kpi-row" style="margin-bottom: 20px;">
-          <div class="kpi-card" style="background: rgba(0,0,0,0.3);">
-            <div class="kpi-title">Active Dataset Sessions</div>
-            <div class="kpi-num" id="toolSessions">5,000</div>
-          </div>
-          <div class="kpi-card" style="background: rgba(0,0,0,0.3);">
-            <div class="kpi-title">Active Purchases</div>
-            <div class="kpi-num" id="toolPurchases">826</div>
-          </div>
-          <div class="kpi-card" style="background: rgba(0,0,0,0.3);">
-            <div class="kpi-title">Calculated CVR</div>
-            <div class="kpi-num" id="toolCVR" style="color: var(--purple-light);">16.52%</div>
-          </div>
-          <div class="kpi-card" style="background: rgba(0,0,0,0.3);">
-            <div class="kpi-title">Active Revenue</div>
-            <div class="kpi-num" id="toolRev">$87,975</div>
-          </div>
-        </div>
-
-        <div class="grid-2">
-          <div class="card" style="background: #0b0b10;">
-            <div class="card-title" style="font-size: 1rem; margin-bottom: 12px;">Dynamic Funnel Graph</div>
-            <canvas id="toolFunnelChart" height="200"></canvas>
-          </div>
-          <div class="card" style="background: #0b0b10;">
-            <div class="card-title" style="font-size: 1rem; margin-bottom: 12px;">Live A/B Testing Significance Evaluator</div>
-            <div style="display: flex; gap: 10px; margin-bottom: 12px;">
-              <input type="number" id="abCtrl" value="120" placeholder="Control Purchases" style="width: 50%; padding: 8px; background: var(--surface); color: #fff; border: 1px solid var(--border); border-radius: 8px;">
-              <input type="number" id="abTreat" value="160" placeholder="Treatment Purchases" style="width: 50%; padding: 8px; background: var(--surface); color: #fff; border: 1px solid var(--border); border-radius: 8px;">
-            </div>
-            <button class="btn-tool" style="width: 100%;" onclick="computeSignificance()">
-              Run Two-Proportion Z-Test
-            </button>
-            <div id="abResult" style="margin-top: 14px; font-size: 0.9rem; line-height: 1.5;"></div>
-          </div>
+          <div id="abResult" style="margin-top: 14px; font-size: 0.9rem; line-height: 1.6;"></div>
         </div>
       </div>
     </div>
 
     <!-- ========================================================
-         PAGE 3: DATASET SPECIFICATION & SOURCE LINKS
+         PAGE 3: DATASETS SPECIFICATION
          ======================================================== -->
     <div id="page-dataset" class="page-section doc-content">
       <h2><i class="fa-solid fa-database" style="color: var(--purple-primary);"></i> Dataset Architecture & Source Documentation</h2>
       
-      <p>This platform is grounded in verifiable event-level e-commerce data from two authoritative sources:</p>
+      <p>This platform supports 3 built-in public e-commerce datasets plus unlimited user CSV uploads stored in browser cookies / local storage:</p>
 
       <div class="card" style="margin-bottom: 24px;">
         <div class="card-title" style="margin-bottom: 12px;">
-          <i class="fa-brands fa-github"></i> 1. Real Production E-Commerce Event Stream (Bundled)
+          <i class="fa-brands fa-github"></i> 1. Real Production E-Commerce Store (Bundled)
         </div>
         <p style="margin-bottom: 10px;">
-          Direct public clickstream record from an operational retail store, containing <strong>9,381 event actions</strong> across 5,000 unique customer journeys.
+          Direct clickstream record from an operational retail store with <strong>9,381 events</strong> across 5,000 unique customer sessions.
         </p>
         <ul style="color: var(--text-muted); margin-left: 20px; line-height: 1.8; font-size: 0.95rem;">
-          <li><strong>Direct Raw Source:</strong> <a href="https://raw.githubusercontent.com/prachi-ps/ecommerce-funnel-analysis/main/user_events.csv" target="_blank" style="color: var(--purple-light);">Download Raw CSV (575 KB)</a></li>
-          <li><strong>Source Repository:</strong> <a href="https://github.com/prachi-ps/ecommerce-funnel-analysis" target="_blank" style="color: var(--purple-light);">prachi-ps/ecommerce-funnel-analysis</a></li>
-          <li><strong>Local Repository Path:</strong> <code style="color: #fff; background: var(--surface-elevated); padding: 2px 6px; border-radius: 4px;">data/real_ecommerce_events.csv</code></li>
-          <li><strong>Tracked Dimensions:</strong> <code>event_id</code>, <code>user_id</code>, <code>event_type</code>, <code>event_date</code>, <code>product_id</code>, <code>amount</code>, <code>traffic_source</code>, <code>device_category</code>.</li>
+          <li><strong>Direct Raw Source:</strong> <a href="https://raw.githubusercontent.com/prachi-ps/ecommerce-funnel-analysis/main/user_events.csv" target="_blank" style="color: var(--purple-light);">Download Raw CSV</a></li>
+          <li><strong>Source Repo:</strong> <a href="https://github.com/prachi-ps/ecommerce-funnel-analysis" target="_blank" style="color: var(--purple-light);">prachi-ps/ecommerce-funnel-analysis</a></li>
+          <li><strong>File on disk:</strong> <code>data/real_ecommerce_events.csv</code></li>
+        </ul>
+      </div>
+
+      <div class="card" style="margin-bottom: 24px;">
+        <div class="card-title" style="margin-bottom: 12px;">
+          <i class="fa-brands fa-google"></i> 2. Official Google Analytics 4 E-Commerce Sample (Parquet-Derived)
+        </div>
+        <p style="margin-bottom: 10px;">
+          Real session-level export from Google Merchandise Store containing <strong>5,241 event actions</strong> and 2,556 sessions.
+        </p>
+        <ul style="color: var(--text-muted); margin-left: 20px; line-height: 1.8; font-size: 0.95rem;">
+          <li><strong>Raw Source:</strong> <a href="https://raw.githubusercontent.com/malloydata/malloy-samples/main/data/ga_sample.parquet" target="_blank" style="color: var(--purple-light);">Malloy GA4 Parquet Dataset</a></li>
+          <li><strong>File on disk:</strong> <code>data/google_analytics_real_events.csv</code></li>
         </ul>
       </div>
 
       <div class="card">
         <div class="card-title" style="margin-bottom: 12px;">
-          <i class="fa-brands fa-google"></i> 2. Google Analytics 4 Official E-Commerce Benchmark
+          <i class="fa-solid fa-chart-line"></i> 3. GA4 Public Benchmark (10,150 Events)
         </div>
         <p style="margin-bottom: 10px;">
-          Exported event telemetry from Google's flagship Merchandise Store, covering millions of sessions with nested schemas.
+          High-volume multi-category benchmark calibrated against official GA4 conversion curves.
         </p>
         <ul style="color: var(--text-muted); margin-left: 20px; line-height: 1.8; font-size: 0.95rem;">
-          <li><strong>Official Documentation:</strong> <a href="https://developers.google.com/analytics/bigquery/web-ecommerce-demo-dataset" target="_blank" style="color: var(--purple-light);">Google Developers GA4 BigQuery Demo Dataset</a></li>
-          <li><strong>BigQuery Table Reference:</strong> <code style="color: #fff; background: var(--surface-elevated); padding: 2px 6px; border-radius: 4px;">bigquery-public-data.ga4_obfuscated_sample_ecommerce.events_*</code></li>
-          <li><strong>Temporal Coverage:</strong> November 1, 2020 through January 31, 2021 (92 days).</li>
+          <li><strong>Documentation:</strong> <a href="https://developers.google.com/analytics/bigquery/web-ecommerce-demo-dataset" target="_blank" style="color: var(--purple-light);">Google Developers GA4 Web E-Commerce Demo</a></li>
+          <li><strong>File on disk:</strong> <code>data/sample_ecommerce_events.csv</code></li>
         </ul>
       </div>
     </div>
 
     <!-- ========================================================
-         PAGE 4: METHODOLOGY & SIGNIFICANCE OF METRICS
+         PAGE 4: METHODOLOGY & SIGNIFICANCE
          ======================================================== -->
     <div id="page-methodology" class="page-section doc-content">
-      <h2><i class="fa-solid fa-brain" style="color: var(--purple-primary);"></i> How It Works & Metric Significance</h2>
-
-      <p>Understanding what each metric represents, how it is derived, and what action the product growth team should take:</p>
+      <h2><i class="fa-solid fa-brain" style="color: var(--purple-primary);"></i> Analytical Methodology & Output Significance</h2>
 
       <div class="callout">
         <h4>1. Conversion Funnel & Drop-off Leakages</h4>
-        <p><strong>Definition:</strong> The percentage of unique users who advance from one critical step to the next. Calculated as: <br>
-        <code>Step Drop-off % = (1 - (Sessions at Stage N / Sessions at Stage N-1)) * 100</code>.<br>
+        <p><strong>Definition:</strong> The percentage of unique users who advance from one critical step to the next.<br>
         <strong>Significance:</strong> Identifies where product friction causes abandonment. A high drop from View Item to Cart signals pricing resistance, whereas a high drop from Checkout to Purchase indicates payment friction.</p>
       </div>
 
       <div class="callout">
         <h4>2. The Device Disparity (Mobile vs. Desktop CVR)</h4>
         <p><strong>Definition:</strong> Ratio of desktop conversion rate to mobile conversion rate.<br>
-        <strong>Significance:</strong> Mobile accounts for ~60% of traffic on modern sites. A 2x disparity is common due to checkout fatigue (typing address and credit cards on small screens). This represents the highest-leverage opportunity for single-tap payment integration (Apple Pay / Google Pay).</p>
+        <strong>Significance:</strong> Mobile accounts for ~60% of traffic on modern sites. A 2x disparity is common due to checkout fatigue (typing address and credit cards on small screens). This represents the highest-leverage opportunity for single-tap payment integration.</p>
       </div>
 
       <div class="callout">
@@ -723,7 +729,7 @@
   <!-- Footer -->
   <footer>
     <div>
-      <strong>GrowthOS</strong> — Product Growth Intelligence Platform &bull; Built by <strong>Dev Chahar</strong> (Manipal University Jaipur, Reg: 23FE10CSE00291)
+      <strong>GrowthOS</strong> &bull; Product Growth Intelligence Platform &bull; Built by <strong>Dev Chahar</strong> (Manipal University Jaipur, Reg: 23FE10CSE00291)
     </div>
     <div>
       <a href="https://github.com/devchahar-byte/product-growth-intelligence" target="_blank" style="color: var(--purple-light); text-decoration: none;">
@@ -732,13 +738,16 @@
     </div>
   </footer>
 
+  <!-- ========================================================
+       DATASET MANAGEMENT & COOKIE PERSISTENCE JAVASCRIPT
+       ======================================================== -->
   <script>
     // Tab Page Switcher
-    function switchPage(pageId) {
+    function switchPage(pageId, btn) {
       document.querySelectorAll('.page-section').forEach(p => p.classList.remove('active'));
       document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
       document.getElementById(pageId).classList.add('active');
-      event.currentTarget.classList.add('active');
+      btn.classList.add('active');
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
@@ -746,103 +755,194 @@
     Chart.defaults.color = '#94a3b8';
     Chart.defaults.font.family = "'Plus Jakarta Sans', sans-serif";
 
-    // Overview Funnel Chart
-    const ctxOvF = document.getElementById('ovFunnelChart').getContext('2d');
-    new Chart(ctxOvF, {
-      type: 'bar',
-      data: {
-        labels: ['Page View', 'Add to Cart', 'Checkout', 'Payment', 'Purchase'],
-        datasets: [{
-          data: [5000, 1553, 1103, 899, 826],
-          backgroundColor: ['#a855f7', '#9333ea', '#7e22ce', '#6b21a8', '#10b981'],
-          borderRadius: 8
-        }]
-      },
-      options: {
-        indexAxis: 'y',
-        responsive: true,
-        plugins: { legend: { display: false } },
-        scales: {
-          x: { grid: { color: 'rgba(255,255,255,0.05)' } },
-          y: { grid: { display: false } }
-        }
-      }
-    });
+    // Chart instances
+    let ovFunnelChartInst = null;
+    let ovDeviceChartInst = null;
+    let toolFunnelChartInst = null;
 
-    // Overview Device Chart
-    const ctxOvD = document.getElementById('ovDeviceChart').getContext('2d');
-    new Chart(ctxOvD, {
-      type: 'bar',
-      data: {
-        labels: ['Mobile', 'Desktop', 'Tablet'],
-        datasets: [{
-          label: 'Conversion Rate (%)',
-          data: [16.20, 17.28, 15.08],
-          backgroundColor: ['#c084fc', '#a855f7', '#6b21a8'],
-          borderRadius: 8
-        }]
-      },
-      options: {
-        responsive: true,
-        plugins: { legend: { display: false } },
-        scales: {
-          y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } },
-          x: { grid: { display: false } }
-        }
-      }
-    });
+    // Built-in datasets
+    const BUILTIN_DATASETS = [
+      { id: 'real_1', name: '1. Real Store (9,381 Events)', endpoint: '/api/real' },
+      { id: 'real_ga', name: '2. Google Analytics (5,241 Events)', endpoint: '/api/ga_real' },
+      { id: 'sample_ga', name: '3. GA4 Benchmark (10,150 Events)', endpoint: '/api/sample' }
+    ];
 
-    // Interactive Tool Engine
-    let toolChartInstance = null;
+    let activeDatasetId = 'real_1';
+    let userDatasets = []; // [{ id, name, csvText, data }]
 
-    async function loadRealApiData() {
-      document.getElementById('toolStatus').innerText = "Loading real e-commerce event stream...";
+    // LocalStorage / Cookie persistence for uploaded datasets
+    function loadSavedUserDatasets() {
       try {
-        const resp = await fetch('http://localhost:8501/api/real');
-        const data = await resp.json();
-        renderToolData(data, "Real Public E-Commerce Dataset (9,381 events)");
-      } catch (err) {
-        // Fallback to static values if local server not connected
-        renderToolData({
-          kpis: { unique_sessions: 5000, purchases: 826, cvr: 16.52, total_revenue: 87975 },
-          funnel: [
-            { stage: 'page_view', sessions: 5000 },
-            { stage: 'add_to_cart', sessions: 1553 },
-            { stage: 'checkout_start', sessions: 1103 },
-            { stage: 'purchase', sessions: 826 }
-          ]
-        }, "Real Public Dataset (Offline Fallback)");
+        const saved = localStorage.getItem('growthos_user_datasets');
+        if (saved) {
+          userDatasets = JSON.parse(saved);
+        }
+      } catch (e) {
+        console.warn('LocalStorage unavailable:', e);
       }
     }
 
-    async function loadSampleApiData() {
-      document.getElementById('toolStatus').innerText = "Loading GA4 Sample Dataset...";
+    function saveUserDatasets() {
       try {
-        const resp = await fetch('http://localhost:8501/api/sample');
-        const data = await resp.json();
-        renderToolData(data, "GA4 Sample Dataset (10,150 events)");
-      } catch (err) {
-        alert("Make sure the local server 'python run_tool.py' is running on port 8501!");
+        localStorage.setItem('growthos_user_datasets', JSON.stringify(userDatasets));
+      } catch (e) {
+        console.warn('Could not save to localStorage:', e);
       }
     }
 
-    function renderToolData(data, label) {
-      document.getElementById('toolStatus').innerText = "✓ Active: " + label;
-      document.getElementById('toolSessions').innerText = data.kpis.unique_sessions.toLocaleString();
-      document.getElementById('toolPurchases').innerText = data.kpis.purchases.toLocaleString();
-      document.getElementById('toolCVR').innerText = data.kpis.cvr + '%';
-      document.getElementById('toolRev').innerText = '$' + data.kpis.total_revenue.toLocaleString();
+    function renderDatasetButtons() {
+      const container = document.getElementById('datasetButtonList');
+      container.innerHTML = '';
 
-      if (toolChartInstance) toolChartInstance.destroy();
-      const ctx = document.getElementById('toolFunnelChart').getContext('2d');
-      toolChartInstance = new Chart(ctx, {
+      // 1. Render Builtin datasets
+      BUILTIN_DATASETS.forEach(ds => {
+        const btn = document.createElement('button');
+        btn.className = `ds-btn ${ds.id === activeDatasetId ? 'active' : ''}`;
+        btn.innerHTML = `<i class="fa-solid fa-database"></i> ${ds.name}`;
+        btn.onclick = () => selectDataset(ds.id);
+        container.appendChild(btn);
+      });
+
+      // 2. Render User Uploaded datasets in order 1st, 2nd, 3rd...
+      userDatasets.forEach((ds, idx) => {
+        const btn = document.createElement('button');
+        btn.className = `ds-btn ${ds.id === activeDatasetId ? 'active' : ''}`;
+        btn.innerHTML = `<i class="fa-solid fa-file-csv"></i> ${idx + 4}. ${ds.name}`;
+        btn.onclick = () => selectDataset(ds.id);
+        container.appendChild(btn);
+      });
+    }
+
+    async function selectDataset(id) {
+      activeDatasetId = id;
+      renderDatasetButtons();
+
+      // Check if built-in
+      const builtin = BUILTIN_DATASETS.find(d => d.id === id);
+      if (builtin) {
+        document.getElementById('currentDatasetTitle').innerText = builtin.name;
+        try {
+          const resp = await fetch(builtin.endpoint);
+          const data = await resp.json();
+          renderActiveData(data);
+        } catch (e) {
+          console.error('Fetch error:', e);
+        }
+      } else {
+        // User dataset
+        const userDs = userDatasets.find(d => d.id === id);
+        if (userDs) {
+          document.getElementById('currentDatasetTitle').innerText = userDs.name;
+          if (userDs.data) {
+            renderActiveData(userDs.data);
+          } else if (userDs.csvText) {
+            // Send to analyze endpoint
+            const resp = await fetch('/api/analyze', {
+              method: 'POST',
+              headers: { 'Content-Type': 'text/plain' },
+              body: userDs.csvText
+            });
+            const data = await resp.json();
+            userDs.data = data;
+            saveUserDatasets();
+            renderActiveData(data);
+          }
+        }
+      }
+    }
+
+    function handleUserCsvUpload(evt) {
+      const file = evt.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = async function(e) {
+        const text = e.target.result;
+        const resp = await fetch('/api/analyze', {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain' },
+          body: text
+        });
+        const data = await resp.json();
+
+        const newId = 'user_' + Date.now();
+        const newDs = {
+          id: newId,
+          name: file.name,
+          csvText: text,
+          data: data
+        };
+
+        userDatasets.push(newDs);
+        saveUserDatasets();
+        activeDatasetId = newId;
+        renderDatasetButtons();
+        selectDataset(newId);
+      };
+      reader.readAsText(file);
+    }
+
+    function renderActiveData(data) {
+      if (!data || !data.kpis) return;
+
+      // 1. Overview KPIs
+      document.getElementById('ovSessions').innerText = data.kpis.unique_sessions.toLocaleString();
+      document.getElementById('ovPurchases').innerText = data.kpis.purchases.toLocaleString();
+      document.getElementById('ovCVR').innerText = data.kpis.cvr + '%';
+      document.getElementById('ovRev').innerText = '$' + data.kpis.total_revenue.toLocaleString();
+      document.getElementById('ovEventsSub').innerText = `${data.kpis.total_events.toLocaleString()} total event interactions`;
+      document.getElementById('ovAovSub').innerText = `AOV: $${data.kpis.aov}`;
+
+      // 2. Overview & Live Tool Funnel Tables
+      const fBodies = [
+        document.querySelector('#ovFunnelTable tbody'),
+        document.querySelector('#toolFunnelTable tbody')
+      ];
+
+      fBodies.forEach(body => {
+        if (!body) return;
+        body.innerHTML = '';
+        data.funnel.forEach(f => {
+          body.innerHTML += `<tr>
+            <td><strong>${f.stage}</strong></td>
+            <td class="mono">${f.sessions.toLocaleString()}</td>
+            <td class="mono">${f.pct_of_top}%</td>
+            <td>${f.drop_off > 0 ? `<span class="badge-drop">-${f.drop_off}%</span>` : '—'}</td>
+          </tr>`;
+        });
+      });
+
+      // Bottleneck text
+      let maxDrop = 0;
+      let bottleneckStage = '';
+      data.funnel.forEach((f, idx) => {
+        if (idx > 0 && f.drop_off > maxDrop) {
+          maxDrop = f.drop_off;
+          bottleneckStage = `${data.funnel[idx-1].stage} → ${f.stage}`;
+        }
+      });
+
+      const bnHtml = maxDrop > 0 
+        ? `🚨 <strong>Primary Bottleneck:</strong> ${maxDrop}% drop occurs between <code>${bottleneckStage}</code>.`
+        : `✅ No steep funnel drops detected.`;
+      
+      document.getElementById('ovBottleneckText').innerHTML = bnHtml;
+      document.getElementById('toolBottleneckText').innerHTML = bnHtml;
+
+      // 3. Funnel Charts (Overview & Tool)
+      const fLabels = data.funnel.map(f => f.stage);
+      const fValues = data.funnel.map(f => f.sessions);
+
+      if (ovFunnelChartInst) ovFunnelChartInst.destroy();
+      const ctxOvF = document.getElementById('ovFunnelChart').getContext('2d');
+      ovFunnelChartInst = new Chart(ctxOvF, {
         type: 'bar',
         data: {
-          labels: data.funnel.map(f => f.stage),
+          labels: fLabels,
           datasets: [{
-            data: data.funnel.map(f => f.sessions),
+            data: fValues,
             backgroundColor: '#a855f7',
-            borderRadius: 6
+            borderRadius: 8
           }]
         },
         options: {
@@ -854,6 +954,72 @@
             y: { grid: { display: false } }
           }
         }
+      });
+
+      if (toolFunnelChartInst) toolFunnelChartInst.destroy();
+      const ctxToolF = document.getElementById('toolFunnelChart').getContext('2d');
+      toolFunnelChartInst = new Chart(ctxToolF, {
+        type: 'bar',
+        data: {
+          labels: fLabels,
+          datasets: [{
+            data: fValues,
+            backgroundColor: '#c084fc',
+            borderRadius: 8
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { grid: { color: 'rgba(255,255,255,0.05)' } },
+            y: { grid: { display: false } }
+          }
+        }
+      });
+
+      // 4. Device Chart
+      if (ovDeviceChartInst) ovDeviceChartInst.destroy();
+      const ctxOvD = document.getElementById('ovDeviceChart').getContext('2d');
+      ovDeviceChartInst = new Chart(ctxOvD, {
+        type: 'bar',
+        data: {
+          labels: data.device_breakdown.map(d => d.device),
+          datasets: [{
+            label: 'Conversion Rate (%)',
+            data: data.device_breakdown.map(d => d.cvr),
+            backgroundColor: ['#c084fc', '#a855f7', '#6b21a8'],
+            borderRadius: 8
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } },
+            x: { grid: { display: false } }
+          }
+        }
+      });
+
+      // 5. Channel Tables (Overview & Live Tool)
+      const chBodies = [
+        document.querySelector('#ovChannelTable tbody'),
+        document.querySelector('#toolChannelTable tbody')
+      ];
+
+      chBodies.forEach(body => {
+        if (!body) return;
+        body.innerHTML = '';
+        data.channel_breakdown.forEach(c => {
+          body.innerHTML += `<tr>
+            <td><strong>${c.channel}</strong></td>
+            <td class="mono">${c.sessions.toLocaleString()}</td>
+            <td class="mono">${c.purchases.toLocaleString()}</td>
+            <td class="mono" style="color: var(--purple-light);">${c.cvr}%</td>
+          </tr>`;
+        });
       });
     }
 
@@ -870,8 +1036,8 @@
       const sig = pVal < 0.05;
 
       document.getElementById('abResult').innerHTML = `
-        Control: <strong>${(pA*100).toFixed(2)}%</strong> | Treatment: <strong>${(pB*100).toFixed(2)}%</strong><br>
-        Lift: <strong>+${(((pB - pA)/pA)*100).toFixed(1)}%</strong> | Z-Score: <strong>${z.toFixed(3)}</strong> | p-value: <strong>${pVal.toFixed(4)}</strong><br>
+        Control CVR: <strong>${(pA*100).toFixed(2)}%</strong> | Treatment CVR: <strong>${(pB*100).toFixed(2)}%</strong><br>
+        Relative Lift: <strong>+${(((pB - pA)/pA)*100).toFixed(1)}%</strong> | Z-Score: <strong>${z.toFixed(3)}</strong> | p-value: <strong>${pVal.toFixed(4)}</strong><br>
         <span style="color: ${sig ? 'var(--success)' : 'var(--danger)'}; font-weight: 700;">
           ${sig ? '✅ Statistically Significant (p < 0.05)' : '⚠️ Inconclusive (p >= 0.05)'}
         </span>
@@ -885,9 +1051,11 @@
       return x > 0 ? 1 - prob : prob;
     }
 
-    // Auto-init tool on page load
+    // Auto-init on load
     window.onload = function() {
-      loadRealApiData();
+      loadSavedUserDatasets();
+      renderDatasetButtons();
+      selectDataset('real_1');
     };
   </script>
 </body>
