@@ -150,9 +150,51 @@ python -m unittest discover -s python/tests -v
 
 ---
 
+## 📊 Visual Analytics & Key Findings
+
+### 1. Purchase Conversion Funnel & Drop-off
+<div align="center">
+  <img src="reports/figures/02_funnel_and_dropoff.png" alt="Conversion Funnel and Drop-off" width="850"/>
+</div>
+
+* **Top-of-Funnel Loss:** 62.2% of sessions drop off before viewing a single product item.
+* **Middle-Funnel Resistance:** 80.0% of product viewers do not add items to their cart.
+
+---
+
+### 2. The Device Conversion Disparity
+<div align="center">
+  <img src="reports/figures/03_device_cvr_gap.png" alt="Device CVR Gap" width="800"/>
+</div>
+
+* **Finding:** While **Mobile accounts for ~60% of traffic**, **Desktop converts at 1.91% vs. Mobile at 0.81%** (a **2.35x gap**).
+* **Action:** Formulated **P0 Mobile Checkout A/B Experiment** in [`reports/experiment_proposal.md`](reports/experiment_proposal.md).
+
+---
+
+### 3. Acquisition Channel Efficiency
+<div align="center">
+  <img src="reports/figures/04_channel_cvr_comparison.png" alt="Channel CVR Comparison" width="750"/>
+</div>
+
+* **Finding:** High-volume channels (Direct, Organic Search) display lower baseline CVR (1.34–2.47%), whereas high-intent channels (Email, Referral) achieve up to **4.35% – 5.37% CVR**.
+
+---
+
+### 4. RFM Customer Segmentation
+<div align="center">
+  <img src="reports/figures/05_rfm_segments.png" alt="RFM Segments" width="550"/>
+</div>
+
+* Complete rendered Jupyter Notebook with all outputs on GitHub:  
+  👉 **[`python/notebooks/01_eda_and_validation.ipynb`](python/notebooks/01_eda_and_validation.ipynb)**
+
+---
+
 ## 📊 Headline Findings & Statistical Audit
 
 All rates are calculated from the canonical GA4 E-Commerce Sample Dataset (`bigquery-public-data.ga4_obfuscated_sample_ecommerce`, Nov 2020 – Jan 2021) with exact denominators and Wilson 95% Confidence Intervals:
+
 
 ### 1. Device Conversion Disparity
 * **Denominator:** Total Sessions ($N = 482,100$)
