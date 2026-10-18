@@ -124,6 +124,47 @@ Figures will be saved to `reports/`. Replace `YOUR_PROJECT_ID` in the script wit
 
 ---
 
+## 📊 Visual Analytics & Key Findings
+
+### 1. Purchase Conversion Funnel & Drop-off
+<div align="center">
+  <img src="reports/figures/02_funnel_and_dropoff.png" alt="Conversion Funnel and Drop-off" width="850"/>
+</div>
+
+* **Top-of-Funnel Loss:** 65.5% of sessions drop off before viewing a single product item.
+* **Middle-Funnel Resistance:** 75.5% of product viewers do not add items to their cart.
+
+---
+
+### 2. The Device Conversion Disparity
+<div align="center">
+  <img src="reports/figures/03_device_cvr_gap.png" alt="Device CVR Gap" width="800"/>
+</div>
+
+* **Finding:** While **Mobile accounts for ~60% of traffic**, **Desktop converts at 1.91% vs. Mobile at 0.81%** (a **2.35x gap**).
+* **Action:** Formulated **P0 Mobile Checkout A/B Experiment** in [`reports/experiment_proposal.md`](reports/experiment_proposal.md).
+
+---
+
+### 3. Acquisition Channel Efficiency
+<div align="center">
+  <img src="reports/figures/04_channel_cvr_comparison.png" alt="Channel CVR Comparison" width="750"/>
+</div>
+
+* **Finding:** High-volume channels (Organic, Direct) display lower baseline CVR (1.1–1.3%), whereas high-intent channels (Email, Referral) achieve up to **4.35% CVR**.
+
+---
+
+### 4. RFM Customer Segmentation
+<div align="center">
+  <img src="reports/figures/05_rfm_segments.png" alt="RFM Segments" width="550"/>
+</div>
+
+* View the complete rendered Jupyter Notebook with all outputs on GitHub:  
+  👉 **[`python/notebooks/01_eda_and_validation.ipynb`](python/notebooks/01_eda_and_validation.ipynb)**
+
+---
+
 ## 📊 Key Findings Summary
 
 | Finding | Evidence | Recommended Action |
