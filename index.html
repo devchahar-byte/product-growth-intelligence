@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Product Growth Intelligence Platform | Dev Chahar</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: rgba(18, 24, 38, 0.7);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --primary: #3b82f6;
+      --primary-glow: rgba(59, 130, 246, 0.25);
+      --accent: #8b5cf6;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --text: #f3f4f6;
+      --text-muted: #9ca3af;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.15) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(139, 92, 246, 0.15) 0px, transparent 50%);
+      background-attachment: fixed;
+      padding-bottom: 80px;
+    }
+
+    header {
+      padding: 60px 20px 40px;
+      text-align: center;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    .badge-container {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      padding: 6px 14px;
+      border-radius: 9999px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      backdrop-filter: blur(10px);
+    }
+    .badge.highlight { color: #60a5fa; border-color: rgba(96, 165, 250, 0.3); }
+
+    h1 {
+      font-size: 2.8rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 16px;
+      background: linear-gradient(to right, #60a5fa, #c084fc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .subtitle {
+      font-size: 1.15rem;
+      color: var(--text-muted);
+      max-width: 750px;
+      margin: 0 auto 30px;
+    }
+
+    .author-bar {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--card-border);
+      padding: 10px 20px;
+      border-radius: 12px;
+      font-size: 0.95rem;
+    }
+    .author-bar a { color: #60a5fa; text-decoration: none; font-weight: 600; }
+    .author-bar a:hover { text-decoration: underline; }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+
+    /* KPI Grid */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 20px;
+      margin-bottom: 40px;
+    }
+
+    .kpi-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 24px;
+      backdrop-filter: blur(12px);
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+    .kpi-card:hover {
+      transform: translateY(-3px);
+      border-color: rgba(96, 165, 250, 0.4);
+    }
+    .kpi-label { font-size: 0.85rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+    .kpi-value { font-size: 2.2rem; font-weight: 800; margin: 8px 0 4px; color: #fff; }
+    .kpi-sub { font-size: 0.85rem; color: var(--text-muted); }
+    .kpi-sub span.bad { color: var(--danger); font-weight: 600; }
+    .kpi-sub span.good { color: var(--success); font-weight: 600; }
+
+    /* Visual Sections */
+    .section-title {
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin: 50px 0 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      letter-spacing: -0.02em;
+    }
+    .section-title i { color: var(--primary); }
+
+    .visual-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 30px;
+      margin-bottom: 30px;
+      backdrop-filter: blur(12px);
+    }
+
+    .visual-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .visual-title { font-size: 1.3rem; font-weight: 700; color: #fff; }
+    .visual-desc { color: var(--text-muted); font-size: 0.95rem; margin-top: 4px; }
+    .pill {
+      background: rgba(59, 130, 246, 0.15);
+      color: #60a5fa;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      border: 1px solid rgba(59, 130, 246, 0.3);
+    }
+
+    .img-wrapper {
+      width: 100%;
+      border-radius: 12px;
+      overflow: hidden;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      text-align: center;
+      padding: 10px;
+    }
+    .img-wrapper img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 8px;
+      display: inline-block;
+    }
+
+    .insight-box {
+      margin-top: 20px;
+      background: rgba(255, 255, 255, 0.02);
+      border-left: 4px solid var(--primary);
+      padding: 16px 20px;
+      border-radius: 0 10px 10px 0;
+      font-size: 0.95rem;
+    }
+    .insight-box strong { color: #fff; }
+
+    /* Opportunity Matrix Table */
+    .table-container {
+      overflow-x: auto;
+      border-radius: 14px;
+      border: 1px solid var(--card-border);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.95rem;
+    }
+    th, td { padding: 14px 18px; }
+    th {
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text-muted);
+      font-weight: 600;
+      border-bottom: 1px solid var(--card-border);
+    }
+    tr:not(:last-child) td { border-bottom: 1px solid var(--card-border); }
+    .p0 { color: var(--danger); font-weight: 700; }
+    .p1 { color: var(--warning); font-weight: 700; }
+    .p2 { color: var(--success); font-weight: 700; }
+
+    /* Footer links */
+    .cta-container {
+      text-align: center;
+      margin: 60px 0 20px;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      color: white;
+      padding: 14px 28px;
+      border-radius: 12px;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 1rem;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      box-shadow: 0 10px 25px -5px var(--primary-glow);
+    }
+    .btn:hover {
+      opacity: 0.9;
+      transform: translateY(-2px);
+    }
+
+    footer {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      margin-top: 50px;
+      border-top: 1px solid var(--card-border);
+      padding-top: 25px;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="badge-container">
+      <span class="badge highlight"><i class="fa-brands fa-google"></i> GA4 BigQuery Analytics</span>
+      <span class="badge"><i class="fa-brands fa-python"></i> Python & Pandas</span>
+      <span class="badge"><i class="fa-solid fa-chart-pie"></i> Power BI Architecture</span>
+      <span class="badge"><i class="fa-solid fa-vial"></i> A/B Testing</span>
+    </div>
+    <h1>Product Growth Intelligence Platform</h1>
+    <p class="subtitle">An end-to-end product data analytics investigation into e-commerce drop-off, acquisition channel ROI, and conversion optimization using Google's Merchandise Store dataset.</p>
+    <div class="author-bar">
+      <span>Built by <strong>Dev Chahar</strong> (B.Tech CSE, Manipal University Jaipur)</span>
+      <span>•</span>
+      <a href="https://github.com/devchahar-byte/product-growth-intelligence" target="_blank"><i class="fa-brands fa-github"></i> View GitHub Repository</a>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <!-- KPI Summary Row -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-label">Top-of-Funnel Drop</div>
+        <div class="kpi-value">65.5%</div>
+        <div class="kpi-sub"><span class="bad">High drop-off</span>: Session → View Item</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Mobile Traffic Share</div>
+        <div class="kpi-value">59.9%</div>
+        <div class="kpi-sub">Dominant traffic category across site</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Desktop vs. Mobile CVR</div>
+        <div class="kpi-value">2.35x</div>
+        <div class="kpi-sub">Desktop: <span class="good">1.91%</span> vs Mobile: <span class="bad">0.81%</span></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Top Channel CVR</div>
+        <div class="kpi-value">4.35%</div>
+        <div class="kpi-sub">Email channel leads in purchase intent</div>
+      </div>
+    </div>
+
+    <!-- Visual 1: Funnel -->
+    <h2 class="section-title"><i class="fa-solid fa-filter"></i> 1. E-Commerce Conversion Funnel</h2>
+    <div class="visual-card">
+      <div class="visual-header">
+        <div>
+          <div class="visual-title">5-Stage Funnel & User Drop-off Analysis</div>
+          <div class="visual-desc">Tracking unique users from session initiation to final transaction</div>
+        </div>
+        <span class="pill">Module 03 SQL + Python</span>
+      </div>
+      <div class="img-wrapper">
+        <img src="reports/figures/02_funnel_and_dropoff.png" alt="Purchase Funnel & Drop-off">
+      </div>
+      <div class="insight-box">
+        <strong>Key Growth Insight:</strong> 65.5% of visitors never discover a product, and 75.5% of product viewers do not add items to their cart. This indicates that discovery and product-page value communication represent higher upside than checkout payment fixes.
+      </div>
+    </div>
+
+    <!-- Visual 2: Device Gap -->
+    <h2 class="section-title"><i class="fa-solid fa-mobile-screen-button"></i> 2. The Device Conversion Disparity</h2>
+    <div class="visual-card">
+      <div class="visual-header">
+        <div>
+          <div class="visual-title">Mobile vs. Desktop Conversion Dynamics</div>
+          <div class="visual-desc">Traffic share compared against actual purchase conversion rates</div>
+        </div>
+        <span class="pill">P0 Optimization Target</span>
+      </div>
+      <div class="img-wrapper">
+        <img src="reports/figures/03_device_cvr_gap.png" alt="Device Conversion Rate Disparity">
+      </div>
+      <div class="insight-box">
+        <strong>The Core Opportunity:</strong> Mobile generates the majority of sessions, but converts at less than half the rate of desktop. Closing just 30% of this gap via streamlined checkout would yield material incremental revenue.
+      </div>
+    </div>
+
+    <!-- Visual 3: Channel Analysis -->
+    <h2 class="section-title"><i class="fa-solid fa-arrow-trend-up"></i> 3. Channel Efficiency & Attribution</h2>
+    <div class="visual-card">
+      <div class="visual-header">
+        <div>
+          <div class="visual-title">Acquisition Volume vs. Conversion Efficiency</div>
+          <div class="visual-desc">First-touch attribution comparing user volume with downstream purchase conversion</div>
+        </div>
+        <span class="pill">Module 04 SQL</span>
+      </div>
+      <div class="img-wrapper">
+        <img src="reports/figures/04_channel_cvr_comparison.png" alt="Channel Performance Comparison">
+      </div>
+      <div class="insight-box">
+        <strong>Channel Strategy:</strong> Organic and Direct drive brand awareness and volume, while Email and Referral deliver qualified buyers. Recommendations include scaling email lead capture and building retargeting flows for abandoned sessions.
+      </div>
+    </div>
+
+    <!-- Visual 4: RFM Segments -->
+    <h2 class="section-title"><i class="fa-solid fa-users"></i> 4. Customer Lifecycle Segmentation</h2>
+    <div class="visual-card">
+      <div class="visual-header">
+        <div>
+          <div class="visual-title">RFM (Recency, Frequency, Monetary) Breakdown</div>
+          <div class="visual-desc">Behavioral user segmentation derived via BigQuery NTILE window scoring</div>
+        </div>
+        <span class="pill">Module 06 SQL</span>
+      </div>
+      <div class="img-wrapper">
+        <img src="reports/figures/05_rfm_segments.png" alt="RFM Segments Donut Chart">
+      </div>
+    </div>
+
+    <!-- Opportunity Matrix -->
+    <h2 class="section-title"><i class="fa-solid fa-list-check"></i> 5. Ranked Opportunity Roadmap</h2>
+    <div class="visual-card">
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Priority</th>
+              <th>Initiative</th>
+              <th>Observed Evidence</th>
+              <th>Expected Impact</th>
+              <th>Deliverable / Next Step</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="p0">P0</td>
+              <td>Mobile Checkout Friction Reduction</td>
+              <td>2.35x desktop/mobile CVR gap on 60% traffic</td>
+              <td>High</td>
+              <td><a href="https://github.com/devchahar-byte/product-growth-intelligence/blob/main/reports/experiment_proposal.md" target="_blank" style="color: #60a5fa;">A/B Experiment Proposal</a></td>
+            </tr>
+            <tr>
+              <td class="p0">P0</td>
+              <td>Homepage Discovery & Curation</td>
+              <td>65.5% drop-off at Session → View Item</td>
+              <td>High</td>
+              <td>Personalised product carousels</td>
+            </tr>
+            <tr>
+              <td class="p1">P1</td>
+              <td>Automated Cart Recovery Sequences</td>
+              <td>75.5% drop from View Item to Cart</td>
+              <td>Medium-High</td>
+              <td>Triggered email sequences</td>
+            </tr>
+            <tr>
+              <td class="p1">P1</td>
+              <td>Scale High-CVR Channels (Email)</td>
+              <td>Email delivers 4.35% CVR vs 1.12% Organic</td>
+              <td>Medium</td>
+              <td>Lead capture optimization</td>
+            </tr>
+            <tr>
+              <td class="p2">P2</td>
+              <td>At-Risk Cohort Win-Back Campaigns</td>
+              <td>14.3% of customers falling into At-Risk cohort</td>
+              <td>Low-Medium</td>
+              <td>Lifecycle re-engagement campaign</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- GitHub CTA -->
+    <div class="cta-container">
+      <a href="https://github.com/devchahar-byte/product-growth-intelligence" target="_blank" class="btn">
+        <i class="fa-brands fa-github"></i> Inspect Full Codebase on GitHub
+      </a>
+    </div>
+
+  </main>
+
+  <footer>
+    <p>Product Growth Intelligence Platform • Portfolio Project by Dev Chahar • Manipal University Jaipur</p>
+    <p style="margin-top: 6px; opacity: 0.7;">Data Source: Google Analytics 4 Public E-Commerce Sample Dataset (BigQuery)</p>
+  </footer>
+
+</body>
+</html>
