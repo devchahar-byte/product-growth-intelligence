@@ -59,7 +59,7 @@ Because `user_pseudo_id` is a proxy (not a true persistent user ID), there is a 
 - Significance level: $\alpha = 0.05$ (two-tailed)
 - Statistical power: $1 - \beta = 0.80$
 - Minimum detectable effect (MDE):
-  - Target 1 (Aggressive MDE = 20% relative lift; $0.81\% \to 0.97\%$): **48,342 sessions per variant**
+  - Target 1 (Aggressive MDE = 20% relative lift; $0.81\% \to 0.97\%$): **52,819 sessions per variant**
   - Target 2 (Conservative MDE = 10% relative lift; $0.81\% \to 0.89\%$): **201,758 sessions per variant**
 
 **Formula & Calculation:**
@@ -70,7 +70,7 @@ from python.scripts.stats_helpers import sample_size_for_proportion
 # Target 1: 20% relative lift
 n_20 = sample_size_for_proportion(baseline_cvr=0.0081, min_detectable_effect=0.20, alpha=0.05, power=0.80)
 print(f'Required (MDE 20%): {n_20:,} sessions per variant ({n_20*2:,} total)')
-# Output: 48,342 sessions per variant (96,684 total)
+# Output: 52,819 sessions per variant (105,638 total)
 
 # Target 2: 10% relative lift
 n_10 = sample_size_for_proportion(baseline_cvr=0.0081, min_detectable_effect=0.10, alpha=0.05, power=0.80)
@@ -80,9 +80,9 @@ print(f'Required (MDE 10%): {n_10:,} sessions per variant ({n_10*2:,} total)')
 
 **Estimated Runtime:**
 At the store's average mobile volume of $\approx 3,141$ sessions/day ($289,000 / 92$ days):
-- **For MDE = 20%:** $\frac{96,684}{3,141} \approx 31$ days runtime.
+- **For MDE = 20%:** $\frac{105,638}{3,141} \approx 34$ days runtime.
 - **For MDE = 10%:** $\frac{403,516}{3,141} \approx 128$ days runtime.
-- **Recommendation:** Power the initial test for **MDE = 20%** with a scheduled runtime of 31–35 days to cover 4 full weekly business cycles.
+- **Recommendation:** Power the initial test for **MDE = 20%** with a scheduled runtime of 34–35 days to cover 5 full weekly business cycles.
 
 ---
 

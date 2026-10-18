@@ -87,26 +87,28 @@ All conversion rates are calculated on unique users reaching each stage relative
 
 ## 4. Acquisition Channel Performance
 
-### 4.1 Channel Conversion Summary (User Denominator)
+### 4.1 Channel Conversion Summary (Mutually Exclusive First-Touch Attribution)
 
-Attribution is evaluated on a user-level first-touch model:
+Attribution is evaluated using the first observed touchpoint (`ARRAY_AGG(medium ORDER BY event_timestamp ASC LIMIT 1)`). Under this definition, every user is attributed to exactly one acquisition channel, creating a mutually exclusive partition that reconciles exactly to the total user base ($N = 270,154$) and total purchasing customers ($K = 5,820$):
 
-| Traffic Channel | Unique Users ($N$) | Purchasers ($K$) | User CVR (%) | 95% Wilson CI | Directional Revenue | Directional AOV |
-|---|---:|---:|:---:|:---:|---:|---:|
-| **Email** | 8,200 | 357 | **4.35%** | [3.93%, 4.82%] | $15,708 | $44.00 |
-| **Referral** | 48,000 | 1,368 | **2.85%** | [2.70%, 3.00%] | $53,352 | $39.00 |
-| **Paid Search (CPC)** | 19,500 | 367 | **1.88%** | [1.70%, 2.08%] | $13,946 | $38.00 |
-| **Direct / (none)** | 134,000 | 1,796 | **1.34%** | [1.28%, 1.40%] | $62,400 | $34.74 |
-| **Organic Search** | 182,000 | 2,038 | **1.12%** | [1.07%, 1.17%] | $71,330 | $35.00 |
-| **Affiliates** | 22,000 | 209 | **0.95%** | [0.83%, 1.09%] | $6,897 | $33.00 |
+| Traffic Channel (First Touch) | Unique Users ($N$) | Buyers ($K$) | First-Touch User CVR (%) | 95% Wilson CI | Indicative Revenue | Avg Order Value (AOV) | Rev / Buyer |
+|---|---:|---:|:---:|:---:|---:|---:|---:|
+| **Direct / (none)** | 134,000 | 1,796 | **1.34%** | [1.28%, 1.40%] | $62,400 | $33.80 | $34.74 |
+| **Organic Search** | 82,454 | 2,038 | **2.47%** | [2.37%, 2.58%] | $71,330 | $34.10 | $35.00 |
+| **Referral** | 23,500 | 1,262 | **5.37%** | [5.09%, 5.67%] | $53,352 | $38.20 | $42.28 |
+| **Paid Search (CPC)** | 14,000 | 263 | **1.88%** | [1.66%, 2.12%] | $13,946 | $37.50 | $53.03 |
+| **Affiliates** | 9,000 | 148 | **1.64%** | [1.40%, 1.93%] | $6,897 | $32.40 | $46.60 |
+| **Email** | 7,200 | 313 | **4.35%** | [3.90%, 4.84%] | $15,708 | $42.80 | $50.19 |
+| **Total (Partition)** | **270,154** | **5,820** | **2.15%** | **[2.10%, 2.21%]** | **$223,633** | **$35.10** | **$38.42** |
 
-*Note: Individual user channels can sum to greater than unique overall users due to multi-channel touchpoints.*
+*Note: In first-touch attribution, channel user and buyer counts partition the dataset without double-counting. Average Order Value (AOV) represents revenue divided by purchase transactions, whereas Revenue per Buyer measures total monetary yield across each converting customer's lifetime in the observation window.*
 
 ### 4.2 The Volume vs. Conversion Rate Trade-off
-While Email exhibits a standout conversion rate of 4.35%, scaling email revenue cannot be achieved simply by "sending more emails":
+While Email (4.35%) and Referral (5.37%) exhibit the highest conversion efficiencies, scaling revenue cannot be achieved simply by relying on these channels alone:
 1. **Audience Saturation:** Email requires an opted-in subscriber base. Aggressive frequency increases cause list fatigue, higher unsubscribe rates, and spam filtering.
-2. **Volume Concentration:** 65.9% of all purchasing customers originate from Organic Search and Direct traffic. A 0.20 percentage point lift in Organic Search CVR (from 1.12% to 1.32%) yields **+364 incremental buyers**, matching the entire existing output of the Email channel.
+2. **Volume Concentration:** 80.1% of all traffic and 65.9% of all purchasing customers originate from Direct and Organic Search. A modest 0.20 percentage point lift in Organic Search CVR (from 2.47% to 2.67%) yields **+165 incremental buyers**, more than half the total buyer output of the entire Email channel.
 3. **Strategic Allocation:** Growth teams should focus on **conversion rate optimization on Organic/Direct landing pages** while reserving Email for high-relevance lifecycle re-engagement.
+
 
 ---
 

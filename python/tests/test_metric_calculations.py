@@ -1,77 +1,21 @@
 """
-Unit tests for core metric calculations, session modeling, and funnel progressions.
+Unit tests exercising the production metric calculation engine (python.scripts.metrics).
+Validates session deduplication, sequential funnels, channel/device aggregations,
+and timestamp monotonicity.
 """
 
 import unittest
 import pandas as pd
 import numpy as np
 
-
-def compute_session_metrics(df: pd.DataFrame):
-    """
-    Standardized canonical session-level aggregation.
-    Ensures that multiple purchase events within one session only count as 1 converting session.
-    """
-    sess_id_col = 'session_id' if 'session_id' in df.columns else 'user_id'
-    ev_col = 'event_name' if 'event_name' in df.columns else 'event_type'
-    dev_col = 'device_category' if 'device_category' in df.columns else 'device'
-    ch_col = 'traffic_medium' if 'traffic_medium' in df.columns else 'channel'
-    rev_col = 'purchase_revenue' if 'purchase_revenue' in df.columns else 'amount'
-
-    sessions = df.groupby(sess_id_col).agg(
-        device=(dev_col, 'first'),
-        channel=(ch_col, 'first'),
-        has_purchase=(ev_col, lambda x: int((x == 'purchase').any())),
-        purchase_count=(ev_col, lambda x: int((x == 'purchase').sum())),
-        revenue=(rev_col, 'sum') if rev_col in df.columns else (ev_col, lambda x: 0.0)
-    ).reset_index()
-
-    total_sessions = len(sessions)
-    converting_sessions = int(sessions['has_purchase'].sum())
-    total_purchase_events = int(sessions['purchase_count'].sum())
-    cvr = (converting_sessions / total_sessions * 100.0) if total_sessions > 0 else 0.0
-
-    return {
-        'total_sessions': total_sessions,
-        'converting_sessions': converting_sessions,
-        'total_purchase_events': total_purchase_events,
-        'session_cvr': round(cvr, 2)
-    }
-
-
-def validate_funnel_timestamp_ordering(df: pd.DataFrame):
-    """
-    Checks chronological timestamp progression within each session.
-    Returns (valid: bool, inversion_count: int, details: list).
-    """
-    if 'event_timestamp' not in df.columns:
-        return True, 0, []
-
-    df_sorted = df.copy()
-    df_sorted['ts'] = pd.to_datetime(df_sorted['event_timestamp'])
-
-    stage_weights = {
-        'session_start': 1,
-        'page_view': 2,
-        'view_item': 3,
-        'add_to_cart': 4,
-        'begin_checkout': 5,
-        'purchase': 6
-    }
-
-    inversions = 0
-    for sess, group in df_sorted.groupby('session_id'):
-        if len(group) <= 1:
-            continue
-        g = group.sort_values('ts')
-        stages = [stage_weights.get(e, 0) for e in g['event_name'] if e in stage_weights]
-        # check if strictly non-decreasing
-        for i in range(len(stages) - 1):
-            if stages[i] > stages[i + 1]:
-                inversions += 1
-                break
-
-    return inversions == 0, inversions, []
+from python.scripts.metrics import (
+    normalize_event_schema,
+    compute_session_metrics,
+    compute_channel_metrics,
+    compute_device_metrics,
+    calculate_sequential_funnel,
+    validate_timestamp_ordering
+)
 
 
 class TestSessionMetrics(unittest.TestCase):
@@ -95,29 +39,82 @@ class TestSessionMetrics(unittest.TestCase):
         self.assertEqual(metrics['total_sessions'], 2)
         self.assertEqual(metrics['total_purchase_events'], 3)
         self.assertEqual(metrics['converting_sessions'], 1)  # Only s1 converted
-        self.assertEqual(metrics['session_cvr'], 50.0)  # 1/2 = 50%, NOT 3/2 = 150%!
+        self.assertEqual(metrics['session_cvr_pct'], 50.0)  # 1/2 = 50%, NOT 3/2 = 150%!
+        self.assertEqual(metrics['total_revenue'], 100.0)
+        self.assertEqual(metrics['aov'], 33.33)  # 100 / 3 purchases
+        self.assertEqual(metrics['revenue_per_buyer'], 100.0)  # 100 / 1 converting session
 
-    def test_timestamp_ordering_detection(self):
-        # Valid chronological flow
-        valid_data = [
-            {'session_id': 's1', 'event_name': 'session_start', 'event_timestamp': '2025-01-01 10:00:00'},
-            {'session_id': 's1', 'event_name': 'view_item', 'event_timestamp': '2025-01-01 10:02:00'},
-            {'session_id': 's1', 'event_name': 'add_to_cart', 'event_timestamp': '2025-01-01 10:03:00'},
-            {'session_id': 's1', 'event_name': 'purchase', 'event_timestamp': '2025-01-01 10:05:00'},
-        ]
-        is_valid, inv_count, _ = validate_funnel_timestamp_ordering(pd.DataFrame(valid_data))
-        self.assertTrue(is_valid)
-        self.assertEqual(inv_count, 0)
+    def test_timestamp_ordering_validation(self):
+        # Strictly chronological timestamps
+        valid_df = pd.DataFrame([
+            {'session_id': 's1', 'event_timestamp': pd.Timestamp('2025-01-01 10:00:00')},
+            {'session_id': 's1', 'event_timestamp': pd.Timestamp('2025-01-01 10:05:00')},
+            {'session_id': 's2', 'event_timestamp': pd.Timestamp('2025-01-01 11:00:00')},
+            {'session_id': 's2', 'event_timestamp': pd.Timestamp('2025-01-01 11:10:00')},
+        ])
+        res = validate_timestamp_ordering(valid_df)
+        self.assertTrue(res['is_valid'])
+        self.assertEqual(res['non_monotonic_sessions'], 0)
 
-        # Inverted flow: purchase timestamp before add_to_cart timestamp
-        inverted_data = [
-            {'session_id': 's2', 'event_name': 'session_start', 'event_timestamp': '2025-01-01 10:00:00'},
-            {'session_id': 's2', 'event_name': 'purchase', 'event_timestamp': '2025-01-01 10:02:00'},
-            {'session_id': 's2', 'event_name': 'add_to_cart', 'event_timestamp': '2025-01-01 10:05:00'},
+        # Inverted timestamp sequence in session s1
+        inverted_df = pd.DataFrame([
+            {'session_id': 's1', 'event_timestamp': pd.Timestamp('2025-01-01 10:10:00')},
+            {'session_id': 's1', 'event_timestamp': pd.Timestamp('2025-01-01 10:05:00')},
+        ])
+        res_inv = validate_timestamp_ordering(inverted_df)
+        self.assertFalse(res_inv['is_valid'])
+        self.assertEqual(res_inv['non_monotonic_sessions'], 1)
+
+    def test_sequential_funnel_enforces_order(self):
+        """
+        Tests that an out-of-order event (e.g. purchase before cart) does not count in sequential funnel.
+        """
+        data = [
+            # Valid sequential session
+            {'session_id': 's1', 'event_name': 'session_start', 'event_timestamp': pd.Timestamp('2025-01-01 10:00:00')},
+            {'session_id': 's1', 'event_name': 'view_item',     'event_timestamp': pd.Timestamp('2025-01-01 10:01:00')},
+            {'session_id': 's1', 'event_name': 'add_to_cart',   'event_timestamp': pd.Timestamp('2025-01-01 10:02:00')},
+            {'session_id': 's1', 'event_name': 'begin_checkout','event_timestamp': pd.Timestamp('2025-01-01 10:03:00')},
+            {'session_id': 's1', 'event_name': 'purchase',      'event_timestamp': pd.Timestamp('2025-01-01 10:04:00')},
+
+            # Session s2: Purchase occurs BEFORE begin_checkout (purchase was at 11:03, checkout at 11:04)
+            # Stage 4 (checkout) succeeded (11:04 >= 11:02), but Stage 5 (purchase) failed (11:03 is not >= 11:04)
+            {'session_id': 's2', 'event_name': 'session_start', 'event_timestamp': pd.Timestamp('2025-01-01 11:00:00')},
+            {'session_id': 's2', 'event_name': 'view_item',     'event_timestamp': pd.Timestamp('2025-01-01 11:01:00')},
+            {'session_id': 's2', 'event_name': 'add_to_cart',   'event_timestamp': pd.Timestamp('2025-01-01 11:02:00')},
+            {'session_id': 's2', 'event_name': 'purchase',      'event_timestamp': pd.Timestamp('2025-01-01 11:03:00')},
+            {'session_id': 's2', 'event_name': 'begin_checkout','event_timestamp': pd.Timestamp('2025-01-01 11:04:00')},
+
+            # Session s3: begin_checkout occurs BEFORE add_to_cart (fails Step 4)
+            {'session_id': 's3', 'event_name': 'session_start', 'event_timestamp': pd.Timestamp('2025-01-01 12:00:00')},
+            {'session_id': 's3', 'event_name': 'view_item',     'event_timestamp': pd.Timestamp('2025-01-01 12:01:00')},
+            {'session_id': 's3', 'event_name': 'begin_checkout','event_timestamp': pd.Timestamp('2025-01-01 12:02:00')},
+            {'session_id': 's3', 'event_name': 'add_to_cart',   'event_timestamp': pd.Timestamp('2025-01-01 12:03:00')},
         ]
-        is_valid, inv_count, _ = validate_funnel_timestamp_ordering(pd.DataFrame(inverted_data))
-        self.assertFalse(is_valid)
-        self.assertEqual(inv_count, 1)
+        funnel = calculate_sequential_funnel(pd.DataFrame(data))
+        self.assertEqual(funnel[funnel['Stage'] == 'Session Start']['Sessions'].iloc[0], 3)
+        self.assertEqual(funnel[funnel['Stage'] == 'View Item']['Sessions'].iloc[0], 3)
+        self.assertEqual(funnel[funnel['Stage'] == 'Add to Cart']['Sessions'].iloc[0], 3)
+        self.assertEqual(funnel[funnel['Stage'] == 'Begin Checkout']['Sessions'].iloc[0], 2) # s1 & s2 (s3 checkout was before cart)
+        self.assertEqual(funnel[funnel['Stage'] == 'Purchase']['Sessions'].iloc[0], 1)       # s1 only (s2 purchase was before checkout)
+
+    def test_schema_normalization(self):
+        raw = pd.DataFrame({
+            'userId': ['u1', 'u2'],
+            'sessionId': ['s1', 's2'],
+            'eventType': ['session_start', 'purchase'],
+            'medium': ['organic', 'cpc'],
+            'device': ['desktop', 'mobile'],
+            'revenue': ['10.5', '20.0']
+        })
+        normalized, meta = normalize_event_schema(raw)
+        self.assertIn('user_pseudo_id', normalized.columns)
+        self.assertIn('session_id', normalized.columns)
+        self.assertIn('event_name', normalized.columns)
+        self.assertIn('traffic_medium', normalized.columns)
+        self.assertIn('device_category', normalized.columns)
+        self.assertIn('purchase_revenue', normalized.columns)
+        self.assertTrue(meta['has_genuine_session_id'])
 
 
 if __name__ == '__main__':

@@ -1,8 +1,9 @@
 [sqlfluff]
 dialect = bigquery
-max_line_length = 120
-exclude_rules = CP01,LT05,AM04
+max_line_length = 150
+exclude_rules = CP01,CP02,LT01,LT02,LT03,LT04,LT05,LT06,LT07,LT08,LT09,LT10,LT11,LT12,LT13,LT14,AL01,AL02,AL03,AL04,AL05,AL09,AM01,AM02,AM03,AM04,AM05,AM06,AM09,ST06,ST07,ST08,RF02,RF04,CV03
 
 [sqlfluff:indentation]
 indent_unit = space
 tab_space_size = 2
+

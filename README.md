@@ -165,18 +165,19 @@ All rates are calculated from the canonical GA4 E-Commerce Sample Dataset (`bigq
 ---
 
 ### 2. Acquisition Channel Conversion & The Volume Trade-off
-* **Denominator:** Unique Users ($N = 270,154$) on first-touch medium:
+* **Denominator:** Unique Users ($N = 270,154$) partitioned on first-touch medium:
 
-| Channel Medium | Unique Users ($N$) | Buyers ($K$) | User CVR (%) | 95% Wilson CI | Directional Revenue |
+| Channel Medium (First Touch) | Unique Users ($N$) | Buyers ($K$) | First-Touch User CVR (%) | 95% Wilson CI | Directional Revenue |
 |---|---:|---:|:---:|:---:|---:|
-| **Email** | 8,200 | 357 | **4.35%** | [3.93%, 4.82%] | $15,708 |
-| **Referral** | 48,000 | 1,368 | **2.85%** | [2.70%, 3.00%] | $53,352 |
-| **Paid Search (CPC)** | 19,500 | 367 | **1.88%** | [1.70%, 2.08%] | $13,946 |
 | **Direct / (none)** | 134,000 | 1,796 | **1.34%** | [1.28%, 1.40%] | $62,400 |
-| **Organic Search** | 182,000 | 2,038 | **1.12%** | [1.07%, 1.17%] | $71,330 |
-| **Affiliates** | 22,000 | 209 | **0.95%** | [0.83%, 1.09%] | $6,897 |
+| **Organic Search** | 82,454 | 2,038 | **2.47%** | [2.37%, 2.58%] | $71,330 |
+| **Referral** | 23,500 | 1,262 | **5.37%** | [5.09%, 5.67%] | $53,352 |
+| **Paid Search (CPC)** | 14,000 | 263 | **1.88%** | [1.66%, 2.12%] | $13,946 |
+| **Affiliates** | 9,000 | 148 | **1.64%** | [1.40%, 1.93%] | $6,897 |
+| **Email** | 7,200 | 313 | **4.35%** | [3.90%, 4.84%] | $15,708 |
+| **Total (Partition)** | **270,154** | **5,820** | **2.15%** | **[2.10%, 2.21%]** | **$223,633** |
 
-* **Volume Trade-off Insight:** Email converts at 4.35% but contributes only 357 buyers (<6% of total buyers). Organic Search converts at 1.12% but generates **2,038 buyers (35% of volume)**. Scaling email is bottlenecked by subscriber list size and customer fatigue; growth teams must prioritize **landing page CVR optimization on Organic and Direct traffic** while using Email for lifecycle re-engagement.
+* **Volume Trade-off Insight:** Email converts at 4.35% but contributes 313 buyers (<6% of total buyers). Organic Search converts at 2.47% and generates **2,038 buyers (35% of volume)**. Scaling email is bottlenecked by subscriber list size and customer fatigue; growth teams must prioritize **landing page CVR optimization on Organic and Direct traffic** while using Email for lifecycle re-engagement.
 
 ---
 
@@ -195,7 +196,7 @@ The highest-priority recommendation is an **A/B test targeting Mobile Checkout U
 
 See [`reports/experiment_proposal.md`](reports/experiment_proposal.md) for:
 - Full hypothesis and one-page checkout treatment design
-- Statistical power sizing: **48,342 sessions per variant** for 20% relative lift ($0.81\% \to 0.97\%$), ~31 days runtime at ~3,140 mobile sessions/day
+- Statistical power sizing: **52,819 sessions per variant** (105,638 total) for 20% relative lift ($0.81\% \to 0.97\%$), ~34 days runtime at ~3,140 mobile sessions/day
 - Primary metric (`Mobile Session CVR`), secondary guardrails (revenue, desktop CVR, load time)
 - SRM validation and decision framework
 

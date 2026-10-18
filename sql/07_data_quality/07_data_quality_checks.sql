@@ -56,12 +56,12 @@ WITH user_events AS (
   GROUP BY 1
 )
 SELECT
-  COUNT(*) FILTER (WHERE had_purchase=1 AND had_cart=0) AS bought_without_cart,
-  COUNT(*) FILTER (WHERE had_purchase=1)                 AS total_purchasers,
+  COUNTIF(had_purchase = 1 AND had_cart = 0) AS bought_without_cart,
+  COUNTIF(had_purchase = 1)                 AS total_purchasers,
   ROUND(
     100 * SAFE_DIVIDE(
-      COUNT(*) FILTER (WHERE had_purchase=1 AND had_cart=0),
-      COUNT(*) FILTER (WHERE had_purchase=1)
+      COUNTIF(had_purchase = 1 AND had_cart = 0),
+      COUNTIF(had_purchase = 1)
     ), 2
   ) AS pct_no_cart_before_purchase
 FROM user_events;

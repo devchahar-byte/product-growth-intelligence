@@ -99,6 +99,13 @@ class TestSampleSizeForProportion(unittest.TestCase):
         self.assertTrue(n > 10000)
         self.assertIsInstance(n, int)
 
+    def test_exact_sample_size_calculation(self):
+        # Mobile experiment baseline: 0.81% CVR
+        n_20 = sample_size_for_proportion(baseline_cvr=0.0081, min_detectable_effect=0.20, alpha=0.05, power=0.80)
+        n_10 = sample_size_for_proportion(baseline_cvr=0.0081, min_detectable_effect=0.10, alpha=0.05, power=0.80)
+        self.assertEqual(n_20, 52819)
+        self.assertEqual(n_10, 201758)
+
     def test_invalid_baseline_raises(self):
         with self.assertRaises(ValueError):
             sample_size_for_proportion(baseline_cvr=0.0, min_detectable_effect=0.10)

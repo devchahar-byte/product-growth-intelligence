@@ -9,13 +9,13 @@
 WITH base AS (
   SELECT
     user_pseudo_id,
-    MAX(device.category) AS device,
+    ARRAY_AGG(device.category IGNORE NULLS ORDER BY event_timestamp ASC LIMIT 1)[SAFE_OFFSET(0)] AS device,
     COALESCE(
-      ARRAY_AGG(traffic_source.medium ORDER BY event_timestamp LIMIT 1)[OFFSET(0)],
+      ARRAY_AGG(traffic_source.medium IGNORE NULLS ORDER BY event_timestamp ASC LIMIT 1)[SAFE_OFFSET(0)],
       '(none)'
     ) AS medium,
-    MAX(CASE WHEN event_name='purchase' THEN 1 ELSE 0 END) AS converted,
-    SUM(COALESCE(ecommerce.purchase_revenue,0)) AS revenue
+    MAX(CASE WHEN event_name = 'purchase' THEN 1 ELSE 0 END) AS converted,
+    SUM(COALESCE(ecommerce.purchase_revenue, 0)) AS revenue
   FROM `bigquery-public-data.ga4_obfuscated_sample_ecommerce.events_*`
   GROUP BY user_pseudo_id
 )

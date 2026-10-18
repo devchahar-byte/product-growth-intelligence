@@ -46,12 +46,12 @@ session_base AS (
     MIN(event_timestamp)  AS session_start_ts,
     MAX(event_timestamp)  AS session_end_ts,
 
-    -- Channel attribution: first medium seen in session
-    MAX(medium)           AS medium,
-    MAX(source)           AS source,
-    MAX(campaign)         AS campaign,
-    MAX(device_category)  AS device_category,
-    MAX(country)          AS country,
+    -- Channel & dimension attribution: first observed value in session
+    ARRAY_AGG(medium IGNORE NULLS ORDER BY event_timestamp ASC LIMIT 1)[SAFE_OFFSET(0)]          AS medium,
+    ARRAY_AGG(source IGNORE NULLS ORDER BY event_timestamp ASC LIMIT 1)[SAFE_OFFSET(0)]          AS source,
+    ARRAY_AGG(campaign IGNORE NULLS ORDER BY event_timestamp ASC LIMIT 1)[SAFE_OFFSET(0)]        AS campaign,
+    ARRAY_AGG(device_category IGNORE NULLS ORDER BY event_timestamp ASC LIMIT 1)[SAFE_OFFSET(0)] AS device_category,
+    ARRAY_AGG(country IGNORE NULLS ORDER BY event_timestamp ASC LIMIT 1)[SAFE_OFFSET(0)]         AS country,
 
     COUNT(*)              AS total_events,
     COUNTIF(event_name = 'page_view')          AS pageviews,
@@ -91,6 +91,7 @@ WITH raw AS (
     (SELECT ep.value.int_value FROM UNNEST(event_params) AS ep
      WHERE ep.key = 'ga_session_id') AS ga_session_id,
     event_name,
+    event_timestamp,
     PARSE_DATE('%Y%m%d', event_date) AS event_date,
     traffic_source.medium  AS medium,
     device.category        AS device_category,
@@ -107,15 +108,12 @@ user_base AS (
     COUNT(*)                                 AS total_events,
     COUNTIF(event_name = 'purchase')         AS total_purchases,
     SUM(COALESCE(purchase_revenue, 0))       AS lifetime_revenue,
-    MAX(CASE WHEN event_name='purchase'
+    MAX(CASE WHEN event_name = 'purchase'
              THEN 1 ELSE 0 END)              AS is_buyer,
-    -- Dominant channel
-    (SELECT AS STRUCT medium, COUNT(*) AS cnt
-     FROM UNNEST(ARRAY_AGG(medium IGNORE NULLS))
-     GROUP BY medium ORDER BY cnt DESC LIMIT 1
-    ).medium                                 AS primary_medium,
-    -- Dominant device
-    MAX(device_category)                     AS primary_device
+    -- First touch medium
+    ARRAY_AGG(medium IGNORE NULLS ORDER BY event_timestamp ASC LIMIT 1)[SAFE_OFFSET(0)] AS primary_medium,
+    -- First touch device
+    ARRAY_AGG(device_category IGNORE NULLS ORDER BY event_timestamp ASC LIMIT 1)[SAFE_OFFSET(0)] AS primary_device
   FROM raw
   WHERE ga_session_id IS NOT NULL
   GROUP BY user_pseudo_id
