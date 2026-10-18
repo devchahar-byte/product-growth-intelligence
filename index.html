@@ -3,437 +3,892 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Product Growth Intelligence Platform | Dev Chahar</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <title>GrowthOS — Product Growth & Intelligence Platform</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
   <style>
     :root {
-      --bg: #090d16;
-      --card-bg: rgba(18, 24, 38, 0.7);
-      --card-border: rgba(255, 255, 255, 0.08);
-      --primary: #3b82f6;
-      --primary-glow: rgba(59, 130, 246, 0.25);
-      --accent: #8b5cf6;
+      --bg: #070709;
+      --surface: #0f0f14;
+      --surface-elevated: #161620;
+      --border: rgba(255, 255, 255, 0.08);
+      --border-hover: rgba(168, 85, 247, 0.4);
+      --purple-primary: #a855f7;
+      --purple-light: #c084fc;
+      --purple-glow: rgba(168, 85, 247, 0.25);
+      --purple-dark: #6b21a8;
+      --text: #ffffff;
+      --text-muted: #94a3b8;
+      --text-subtle: #64748b;
       --success: #10b981;
-      --warning: #f59e0b;
-      --danger: #ef4444;
-      --text: #f3f4f6;
-      --text-muted: #9ca3af;
+      --danger: #f43f5e;
+      --radius: 16px;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
     body {
       font-family: 'Plus Jakarta Sans', sans-serif;
       background-color: var(--bg);
       color: var(--text);
-      line-height: 1.6;
-      background-image: 
-        radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.15) 0px, transparent 50%),
-        radial-gradient(at 100% 100%, rgba(139, 92, 246, 0.15) 0px, transparent 50%);
-      background-attachment: fixed;
-      padding-bottom: 80px;
-    }
-
-    header {
-      padding: 60px 20px 40px;
-      text-align: center;
-      max-width: 1000px;
-      margin: 0 auto;
-    }
-
-    .badge-container {
+      min-height: 100vh;
       display: flex;
-      justify-content: center;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-bottom: 20px;
+      flex-direction: column;
+      overflow-x: hidden;
+      background-image: 
+        radial-gradient(circle at 15% 10%, rgba(168, 85, 247, 0.12) 0%, transparent 40%),
+        radial-gradient(circle at 85% 60%, rgba(192, 132, 252, 0.08) 0%, transparent 45%);
     }
 
-    .badge {
+    /* Top Navigation */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(7, 7, 9, 0.85);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 36px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--text);
+    }
+    .brand-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--purple-primary), #3b82f6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      color: #fff;
+      box-shadow: 0 0 20px var(--purple-glow);
+    }
+    .brand-name {
+      font-size: 1.15rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+    .brand-tag {
+      font-size: 0.7rem;
+      background: rgba(168, 85, 247, 0.15);
+      color: var(--purple-light);
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(168, 85, 247, 0.3);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .nav-tabs {
+      display: flex;
+      gap: 6px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 4px;
+      border-radius: 12px;
+    }
+    .nav-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 8px 18px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .nav-btn:hover {
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.04);
+    }
+    .nav-btn.active {
+      background: var(--surface-elevated);
+      color: #fff;
+      border: 1px solid var(--border-hover);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+    }
+
+    .nav-cta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .btn-outline {
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text);
+      padding: 8px 16px;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-decoration: none;
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      padding: 6px 14px;
-      border-radius: 9999px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      color: var(--text-muted);
-      backdrop-filter: blur(10px);
+      transition: all 0.2s ease;
     }
-    .badge.highlight { color: #60a5fa; border-color: rgba(96, 165, 250, 0.3); }
+    .btn-outline:hover {
+      border-color: var(--purple-light);
+      background: rgba(168, 85, 247, 0.08);
+      transform: translateY(-1px);
+    }
 
-    h1 {
-      font-size: 2.8rem;
+    /* Main Container & Page Switcher */
+    main {
+      flex: 1;
+      max-width: 1300px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 36px 24px 80px;
+    }
+
+    .page-section {
+      display: none;
+      animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .page-section.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Hero / Header within Overview */
+    .hero {
+      text-align: center;
+      padding: 40px 0 50px;
+      max-width: 850px;
+      margin: 0 auto;
+    }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      background: rgba(168, 85, 247, 0.1);
+      border: 1px solid rgba(168, 85, 247, 0.3);
+      border-radius: 999px;
+      font-size: 0.82rem;
+      color: var(--purple-light);
+      font-weight: 600;
+      margin-bottom: 20px;
+    }
+    .hero h1 {
+      font-size: 3.2rem;
       font-weight: 800;
-      letter-spacing: -0.03em;
+      letter-spacing: -0.04em;
+      line-height: 1.15;
       margin-bottom: 16px;
-      background: linear-gradient(to right, #60a5fa, #c084fc);
+      background: linear-gradient(135deg, #ffffff 40%, var(--purple-light) 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
-
-    .subtitle {
+    .hero p {
       font-size: 1.15rem;
       color: var(--text-muted);
-      max-width: 750px;
-      margin: 0 auto 30px;
+      line-height: 1.6;
     }
 
-    .author-bar {
-      display: inline-flex;
-      align-items: center;
-      gap: 12px;
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid var(--card-border);
-      padding: 10px 20px;
-      border-radius: 12px;
-      font-size: 0.95rem;
-    }
-    .author-bar a { color: #60a5fa; text-decoration: none; font-weight: 600; }
-    .author-bar a:hover { text-decoration: underline; }
-
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 0 20px;
-    }
-
-    /* KPI Grid */
-    .kpi-grid {
+    /* KPI Cards */
+    .kpi-row {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 20px;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 18px;
       margin-bottom: 40px;
     }
-
     .kpi-card {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
       padding: 24px;
-      backdrop-filter: blur(12px);
-      transition: transform 0.2s ease, border-color 0.2s ease;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s ease;
     }
     .kpi-card:hover {
+      border-color: var(--border-hover);
       transform: translateY(-3px);
-      border-color: rgba(96, 165, 250, 0.4);
+      box-shadow: 0 12px 30px -10px var(--purple-glow);
     }
-    .kpi-label { font-size: 0.85rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
-    .kpi-value { font-size: 2.2rem; font-weight: 800; margin: 8px 0 4px; color: #fff; }
-    .kpi-sub { font-size: 0.85rem; color: var(--text-muted); }
-    .kpi-sub span.bad { color: var(--danger); font-weight: 600; }
-    .kpi-sub span.good { color: var(--success); font-weight: 600; }
-
-    /* Visual Sections */
-    .section-title {
-      font-size: 1.8rem;
-      font-weight: 700;
-      margin: 50px 0 24px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      letter-spacing: -0.02em;
+    .kpi-card::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 3px;
+      background: linear-gradient(90deg, transparent, var(--purple-primary), transparent);
+      opacity: 0;
+      transition: opacity 0.3s ease;
     }
-    .section-title i { color: var(--primary); }
+    .kpi-card:hover::after { opacity: 1; }
 
-    .visual-card {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 20px;
-      padding: 30px;
-      margin-bottom: 30px;
-      backdrop-filter: blur(12px);
-    }
-
-    .visual-header {
+    .kpi-header {
       display: flex;
       justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 20px;
-      flex-wrap: wrap;
-      gap: 12px;
+      align-items: center;
+      margin-bottom: 12px;
     }
-    .visual-title { font-size: 1.3rem; font-weight: 700; color: #fff; }
-    .visual-desc { color: var(--text-muted); font-size: 0.95rem; margin-top: 4px; }
-    .pill {
-      background: rgba(59, 130, 246, 0.15);
-      color: #60a5fa;
-      padding: 4px 12px;
-      border-radius: 9999px;
+    .kpi-title {
       font-size: 0.8rem;
       font-weight: 600;
-      border: 1px solid rgba(59, 130, 246, 0.3);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
     }
-
-    .img-wrapper {
-      width: 100%;
-      border-radius: 12px;
-      overflow: hidden;
-      background: rgba(0, 0, 0, 0.3);
-      border: 1px solid rgba(255, 255, 255, 0.05);
-      text-align: center;
-      padding: 10px;
-    }
-    .img-wrapper img {
-      max-width: 100%;
-      height: auto;
-      border-radius: 8px;
-      display: inline-block;
-    }
-
-    .insight-box {
-      margin-top: 20px;
-      background: rgba(255, 255, 255, 0.02);
-      border-left: 4px solid var(--primary);
-      padding: 16px 20px;
-      border-radius: 0 10px 10px 0;
+    .kpi-icon {
+      color: var(--purple-light);
       font-size: 0.95rem;
     }
-    .insight-box strong { color: #fff; }
-
-    /* Opportunity Matrix Table */
-    .table-container {
-      overflow-x: auto;
-      border-radius: 14px;
-      border: 1px solid var(--card-border);
+    .kpi-num {
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: #fff;
+      font-family: 'JetBrains Mono', monospace;
+      letter-spacing: -0.03em;
     }
+    .kpi-sub {
+      font-size: 0.85rem;
+      color: var(--text-subtle);
+      margin-top: 6px;
+    }
+
+    /* Grid Layouts */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 30px;
+    }
+    @media (max-width: 900px) {
+      .grid-2 { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+      transition: border-color 0.25s ease;
+    }
+    .card:hover { border-color: rgba(255, 255, 255, 0.15); }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .card-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .card-title i { color: var(--purple-primary); }
+
+    .badge-pill {
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+    }
+
+    /* Interactive Live Tool Section */
+    .tool-box {
+      background: var(--surface-elevated);
+      border: 1px solid var(--border-hover);
+      border-radius: var(--radius);
+      padding: 32px;
+      margin-bottom: 30px;
+      position: relative;
+    }
+    .tool-controls {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 24px;
+    }
+    .btn-tool {
+      background: linear-gradient(135deg, var(--purple-primary), var(--purple-dark));
+      color: white;
+      border: none;
+      padding: 12px 22px;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 15px var(--purple-glow);
+    }
+    .btn-tool:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px var(--purple-glow);
+    }
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      color: #fff;
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.09);
+      border-color: var(--border-hover);
+    }
+
+    /* Tables */
     table {
       width: 100%;
       border-collapse: collapse;
+      font-size: 0.9rem;
       text-align: left;
-      font-size: 0.95rem;
     }
-    th, td { padding: 14px 18px; }
+    th, td { padding: 12px 16px; }
     th {
-      background: rgba(255, 255, 255, 0.04);
       color: var(--text-muted);
       font-weight: 600;
-      border-bottom: 1px solid var(--card-border);
+      border-bottom: 1px solid var(--border);
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
     }
-    tr:not(:last-child) td { border-bottom: 1px solid var(--card-border); }
-    .p0 { color: var(--danger); font-weight: 700; }
-    .p1 { color: var(--warning); font-weight: 700; }
-    .p2 { color: var(--success); font-weight: 700; }
-
-    /* Footer links */
-    .cta-container {
-      text-align: center;
-      margin: 60px 0 20px;
-    }
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-      color: white;
-      padding: 14px 28px;
-      border-radius: 12px;
-      text-decoration: none;
+    tr:not(:last-child) td { border-bottom: 1px solid var(--border); }
+    .mono { font-family: 'JetBrains Mono', monospace; font-weight: 600; }
+    .badge-drop {
+      background: rgba(244, 63, 94, 0.15);
+      color: var(--danger);
+      padding: 3px 8px;
+      border-radius: 6px;
       font-weight: 700;
-      font-size: 1rem;
-      transition: opacity 0.2s ease, transform 0.2s ease;
-      box-shadow: 0 10px 25px -5px var(--primary-glow);
-    }
-    .btn:hover {
-      opacity: 0.9;
-      transform: translateY(-2px);
+      font-size: 0.8rem;
     }
 
-    footer {
-      text-align: center;
+    /* Methodology & Documentation Pages */
+    .doc-content h2 {
+      font-size: 1.8rem;
+      margin: 40px 0 16px;
+      color: #fff;
+      letter-spacing: -0.02em;
+    }
+    .doc-content p {
       color: var(--text-muted);
+      line-height: 1.8;
+      font-size: 1.05rem;
+      margin-bottom: 18px;
+    }
+    .callout {
+      background: rgba(168, 85, 247, 0.06);
+      border-left: 4px solid var(--purple-primary);
+      border-radius: 0 12px 12px 0;
+      padding: 20px 24px;
+      margin: 24px 0;
+    }
+    .callout h4 { color: #fff; font-size: 1.05rem; margin-bottom: 6px; }
+    .callout p { margin-bottom: 0; font-size: 0.95rem; }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 30px 36px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: var(--text-subtle);
       font-size: 0.85rem;
-      margin-top: 50px;
-      border-top: 1px solid var(--card-border);
-      padding-top: 25px;
+      flex-wrap: wrap;
+      gap: 12px;
+      background: var(--surface);
     }
   </style>
 </head>
 <body>
 
-  <header>
-    <div class="badge-container">
-      <span class="badge highlight"><i class="fa-brands fa-google"></i> GA4 BigQuery Analytics</span>
-      <span class="badge"><i class="fa-brands fa-python"></i> Python & Pandas</span>
-      <span class="badge"><i class="fa-solid fa-chart-pie"></i> Power BI Architecture</span>
-      <span class="badge"><i class="fa-solid fa-vial"></i> A/B Testing</span>
-    </div>
-    <h1>Product Growth Intelligence Platform</h1>
-    <p class="subtitle">An end-to-end product data analytics investigation into e-commerce drop-off, acquisition channel ROI, and conversion optimization using Google's Merchandise Store dataset.</p>
-    <div class="author-bar">
-      <span>Built by <strong>Dev Chahar</strong> (B.Tech CSE, Manipal University Jaipur)</span>
-      <span>•</span>
-      <a href="https://github.com/devchahar-byte/product-growth-intelligence" target="_blank"><i class="fa-brands fa-github"></i> View GitHub Repository</a>
-    </div>
-  </header>
+  <!-- Top Navigation Bar -->
+  <nav>
+    <a href="#" class="brand">
+      <div class="brand-icon"><i class="fa-solid fa-bolt"></i></div>
+      <span class="brand-name">GrowthOS</span>
+      <span class="brand-tag">Intelligence Platform</span>
+    </a>
 
-  <main class="container">
-
-    <!-- KPI Summary Row -->
-    <div class="kpi-grid">
-      <div class="kpi-card">
-        <div class="kpi-label">Top-of-Funnel Drop</div>
-        <div class="kpi-value">65.5%</div>
-        <div class="kpi-sub"><span class="bad">High drop-off</span>: Session → View Item</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-label">Mobile Traffic Share</div>
-        <div class="kpi-value">59.9%</div>
-        <div class="kpi-sub">Dominant traffic category across site</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-label">Desktop vs. Mobile CVR</div>
-        <div class="kpi-value">2.35x</div>
-        <div class="kpi-sub">Desktop: <span class="good">1.91%</span> vs Mobile: <span class="bad">0.81%</span></div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-label">Top Channel CVR</div>
-        <div class="kpi-value">4.35%</div>
-        <div class="kpi-sub">Email channel leads in purchase intent</div>
-      </div>
+    <!-- Page Switcher Tabs -->
+    <div class="nav-tabs">
+      <button class="nav-btn active" onclick="switchPage('page-overview')">
+        <i class="fa-solid fa-chart-pie"></i> Overview
+      </button>
+      <button class="nav-btn" onclick="switchPage('page-tool')">
+        <i class="fa-solid fa-play"></i> Live Tool
+      </button>
+      <button class="nav-btn" onclick="switchPage('page-dataset')">
+        <i class="fa-solid fa-database"></i> Datasets
+      </button>
+      <button class="nav-btn" onclick="switchPage('page-methodology')">
+        <i class="fa-solid fa-vial-circle-check"></i> Methodology
+      </button>
     </div>
 
-    <!-- Visual 1: Funnel -->
-    <h2 class="section-title"><i class="fa-solid fa-filter"></i> 1. E-Commerce Conversion Funnel</h2>
-    <div class="visual-card">
-      <div class="visual-header">
-        <div>
-          <div class="visual-title">5-Stage Funnel & User Drop-off Analysis</div>
-          <div class="visual-desc">Tracking unique users from session initiation to final transaction</div>
-        </div>
-        <span class="pill">Module 03 SQL + Python</span>
-      </div>
-      <div class="img-wrapper">
-        <img src="reports/figures/02_funnel_and_dropoff.png" alt="Purchase Funnel & Drop-off">
-      </div>
-      <div class="insight-box">
-        <strong>Key Growth Insight:</strong> 65.5% of visitors never discover a product, and 75.5% of product viewers do not add items to their cart. This indicates that discovery and product-page value communication represent higher upside than checkout payment fixes.
-      </div>
-    </div>
-
-    <!-- Visual 2: Device Gap -->
-    <h2 class="section-title"><i class="fa-solid fa-mobile-screen-button"></i> 2. The Device Conversion Disparity</h2>
-    <div class="visual-card">
-      <div class="visual-header">
-        <div>
-          <div class="visual-title">Mobile vs. Desktop Conversion Dynamics</div>
-          <div class="visual-desc">Traffic share compared against actual purchase conversion rates</div>
-        </div>
-        <span class="pill">P0 Optimization Target</span>
-      </div>
-      <div class="img-wrapper">
-        <img src="reports/figures/03_device_cvr_gap.png" alt="Device Conversion Rate Disparity">
-      </div>
-      <div class="insight-box">
-        <strong>The Core Opportunity:</strong> Mobile generates the majority of sessions, but converts at less than half the rate of desktop. Closing just 30% of this gap via streamlined checkout would yield material incremental revenue.
-      </div>
-    </div>
-
-    <!-- Visual 3: Channel Analysis -->
-    <h2 class="section-title"><i class="fa-solid fa-arrow-trend-up"></i> 3. Channel Efficiency & Attribution</h2>
-    <div class="visual-card">
-      <div class="visual-header">
-        <div>
-          <div class="visual-title">Acquisition Volume vs. Conversion Efficiency</div>
-          <div class="visual-desc">First-touch attribution comparing user volume with downstream purchase conversion</div>
-        </div>
-        <span class="pill">Module 04 SQL</span>
-      </div>
-      <div class="img-wrapper">
-        <img src="reports/figures/04_channel_cvr_comparison.png" alt="Channel Performance Comparison">
-      </div>
-      <div class="insight-box">
-        <strong>Channel Strategy:</strong> Organic and Direct drive brand awareness and volume, while Email and Referral deliver qualified buyers. Recommendations include scaling email lead capture and building retargeting flows for abandoned sessions.
-      </div>
-    </div>
-
-    <!-- Visual 4: RFM Segments -->
-    <h2 class="section-title"><i class="fa-solid fa-users"></i> 4. Customer Lifecycle Segmentation</h2>
-    <div class="visual-card">
-      <div class="visual-header">
-        <div>
-          <div class="visual-title">RFM (Recency, Frequency, Monetary) Breakdown</div>
-          <div class="visual-desc">Behavioral user segmentation derived via BigQuery NTILE window scoring</div>
-        </div>
-        <span class="pill">Module 06 SQL</span>
-      </div>
-      <div class="img-wrapper">
-        <img src="reports/figures/05_rfm_segments.png" alt="RFM Segments Donut Chart">
-      </div>
-    </div>
-
-    <!-- Opportunity Matrix -->
-    <h2 class="section-title"><i class="fa-solid fa-list-check"></i> 5. Ranked Opportunity Roadmap</h2>
-    <div class="visual-card">
-      <div class="table-container">
-        <table>
-          <thead>
-            <tr>
-              <th>Priority</th>
-              <th>Initiative</th>
-              <th>Observed Evidence</th>
-              <th>Expected Impact</th>
-              <th>Deliverable / Next Step</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td class="p0">P0</td>
-              <td>Mobile Checkout Friction Reduction</td>
-              <td>2.35x desktop/mobile CVR gap on 60% traffic</td>
-              <td>High</td>
-              <td><a href="https://github.com/devchahar-byte/product-growth-intelligence/blob/main/reports/experiment_proposal.md" target="_blank" style="color: #60a5fa;">A/B Experiment Proposal</a></td>
-            </tr>
-            <tr>
-              <td class="p0">P0</td>
-              <td>Homepage Discovery & Curation</td>
-              <td>65.5% drop-off at Session → View Item</td>
-              <td>High</td>
-              <td>Personalised product carousels</td>
-            </tr>
-            <tr>
-              <td class="p1">P1</td>
-              <td>Automated Cart Recovery Sequences</td>
-              <td>75.5% drop from View Item to Cart</td>
-              <td>Medium-High</td>
-              <td>Triggered email sequences</td>
-            </tr>
-            <tr>
-              <td class="p1">P1</td>
-              <td>Scale High-CVR Channels (Email)</td>
-              <td>Email delivers 4.35% CVR vs 1.12% Organic</td>
-              <td>Medium</td>
-              <td>Lead capture optimization</td>
-            </tr>
-            <tr>
-              <td class="p2">P2</td>
-              <td>At-Risk Cohort Win-Back Campaigns</td>
-              <td>14.3% of customers falling into At-Risk cohort</td>
-              <td>Low-Medium</td>
-              <td>Lifecycle re-engagement campaign</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- GitHub CTA -->
-    <div class="cta-container">
-      <a href="https://github.com/devchahar-byte/product-growth-intelligence" target="_blank" class="btn">
-        <i class="fa-brands fa-github"></i> Inspect Full Codebase on GitHub
+    <div class="nav-cta">
+      <a href="https://github.com/devchahar-byte/product-growth-intelligence" target="_blank" class="btn-outline">
+        <i class="fa-brands fa-github"></i> GitHub Repository
       </a>
+    </div>
+  </nav>
+
+  <main>
+
+    <!-- ========================================================
+         PAGE 1: OVERVIEW & EXECUTIVE DASHBOARD
+         ======================================================== -->
+    <div id="page-overview" class="page-section active">
+      <div class="hero">
+        <div class="hero-badge"><i class="fa-solid fa-sparkles"></i> GA4 E-Commerce Analytics & Statistical Inference</div>
+        <h1>Product Growth Intelligence Platform</h1>
+        <p>Uncovering conversion leakage, evaluating channel ROI, and architecting targeted A/B experiment proposals using real e-commerce event streams.</p>
+      </div>
+
+      <!-- Live Dynamic KPI Strip -->
+      <div class="kpi-row">
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <span class="kpi-title">Total Sessions</span>
+            <i class="fa-solid fa-users kpi-icon"></i>
+          </div>
+          <div class="kpi-num" id="ovSessions">5,000</div>
+          <div class="kpi-sub">Across 9,381 event interactions</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <span class="kpi-title">Purchase Conversions</span>
+            <i class="fa-solid fa-cart-shopping kpi-icon"></i>
+          </div>
+          <div class="kpi-num" id="ovPurchases">826</div>
+          <div class="kpi-sub">Completed order checkouts</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <span class="kpi-title">Overall CVR</span>
+            <i class="fa-solid fa-arrow-trend-up kpi-icon"></i>
+          </div>
+          <div class="kpi-num" style="color: var(--purple-light);" id="ovCVR">16.52%</div>
+          <div class="kpi-sub">Baseline purchase conversion rate</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <span class="kpi-title">Observed Revenue</span>
+            <i class="fa-solid fa-dollar-sign kpi-icon"></i>
+          </div>
+          <div class="kpi-num" id="ovRev">$87,975</div>
+          <div class="kpi-sub">Average Order Value: <strong>$106.51</strong></div>
+        </div>
+      </div>
+
+      <!-- Funnel & Drop-off Grid -->
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title"><i class="fa-solid fa-filter"></i> 5-Stage Conversion Funnel</div>
+            <span class="badge-pill">Dynamic Telemetry</span>
+          </div>
+          <canvas id="ovFunnelChart" height="230"></canvas>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title"><i class="fa-solid fa-triangle-exclamation"></i> Funnel Stage Bottlenecks</div>
+            <span class="badge-pill">Drop-off Rates</span>
+          </div>
+          <table>
+            <thead>
+              <tr><th>Funnel Stage</th><th>Sessions</th><th>% of Top</th><th>Drop-off</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><strong>page_view</strong></td><td class="mono">5,000</td><td class="mono">100.0%</td><td>—</td></tr>
+              <tr><td><strong>add_to_cart</strong></td><td class="mono">1,553</td><td class="mono">31.06%</td><td><span class="badge-drop">-68.94%</span></td></tr>
+              <tr><td><strong>checkout_start</strong></td><td class="mono">1,103</td><td class="mono">22.06%</td><td><span class="badge-drop">-28.98%</span></td></tr>
+              <tr><td><strong>payment_info</strong></td><td class="mono">899</td><td class="mono">17.98%</td><td><span class="badge-drop">-18.50%</span></td></tr>
+              <tr><td><strong>purchase</strong></td><td class="mono">826</td><td class="mono">16.52%</td><td><span class="badge-drop">-8.12%</span></td></tr>
+            </tbody>
+          </table>
+          <div style="margin-top: 18px; font-size: 0.85rem; color: var(--text-muted); border-top: 1px solid var(--border); padding-top: 12px;">
+            🚨 <strong>Primary Bottleneck:</strong> 68.94% drop occurs between initial page view and cart addition, signalling product discovery resistance.
+          </div>
+        </div>
+      </div>
+
+      <!-- Device & Channel Insights -->
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title"><i class="fa-solid fa-mobile-screen"></i> Device Category Disparity</div>
+            <span class="badge-pill">Mobile vs. Desktop</span>
+          </div>
+          <canvas id="ovDeviceChart" height="200"></canvas>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title"><i class="fa-solid fa-bullhorn"></i> Channel Yield & Acquisition</div>
+            <span class="badge-pill">First-Touch CVR</span>
+          </div>
+          <table>
+            <thead>
+              <tr><th>Traffic Channel</th><th>Sessions</th><th>Purchases</th><th>CVR</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><strong>organic</strong></td><td class="mono">2,082</td><td class="mono">344</td><td class="mono" style="color: var(--purple-light);">16.52%</td></tr>
+              <tr><td><strong>social</strong></td><td class="mono">1,079</td><td class="mono">178</td><td class="mono" style="color: var(--purple-light);">16.50%</td></tr>
+              <tr><td><strong>paid_ads</strong></td><td class="mono">1,071</td><td class="mono">177</td><td class="mono" style="color: var(--purple-light);">16.53%</td></tr>
+              <tr><td><strong>email</strong></td><td class="mono">768</td><td class="mono">127</td><td class="mono" style="color: var(--purple-light);">16.54%</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================
+         PAGE 2: INTERACTIVE LIVE TOOL (CSV UPLOAD & TEST ENGINE)
+         ======================================================== -->
+    <div id="page-tool" class="page-section">
+      <div class="card-header" style="margin-bottom: 24px;">
+        <div>
+          <h2><i class="fa-solid fa-terminal" style="color: var(--purple-primary);"></i> Interactive E-Commerce Tool</h2>
+          <p style="color: var(--text-muted); font-size: 0.95rem; margin-top: 4px;">Run dynamic funnel calculations and live A/B hypothesis tests across custom datasets.</p>
+        </div>
+        <a href="http://localhost:8501" target="_blank" class="btn-outline">
+          <i class="fa-solid fa-arrow-up-right-from-square"></i> Open Local Backend Server (Port 8501)
+        </a>
+      </div>
+
+      <div class="tool-box">
+        <div class="tool-controls">
+          <button class="btn-tool" onclick="loadRealApiData()">
+            <i class="fa-solid fa-bolt"></i> Load 9,381 Real Events
+          </button>
+          <button class="btn-secondary" onclick="loadSampleApiData()">
+            <i class="fa-solid fa-database"></i> Load GA4 Sample Dataset
+          </button>
+          <label class="btn-secondary" style="cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-upload"></i> Upload Custom CSV
+            <input type="file" id="toolFileInput" accept=".csv" style="display: none;" onchange="handleFileUpload(event)">
+          </label>
+        </div>
+
+        <div id="toolStatus" style="font-size: 0.85rem; color: var(--purple-light); font-weight: 600; margin-bottom: 16px;">
+          ✓ Currently displaying: Real Public E-Commerce Dataset (9,381 events)
+        </div>
+
+        <!-- Dynamic Output Display -->
+        <div class="kpi-row" style="margin-bottom: 20px;">
+          <div class="kpi-card" style="background: rgba(0,0,0,0.3);">
+            <div class="kpi-title">Active Dataset Sessions</div>
+            <div class="kpi-num" id="toolSessions">5,000</div>
+          </div>
+          <div class="kpi-card" style="background: rgba(0,0,0,0.3);">
+            <div class="kpi-title">Active Purchases</div>
+            <div class="kpi-num" id="toolPurchases">826</div>
+          </div>
+          <div class="kpi-card" style="background: rgba(0,0,0,0.3);">
+            <div class="kpi-title">Calculated CVR</div>
+            <div class="kpi-num" id="toolCVR" style="color: var(--purple-light);">16.52%</div>
+          </div>
+          <div class="kpi-card" style="background: rgba(0,0,0,0.3);">
+            <div class="kpi-title">Active Revenue</div>
+            <div class="kpi-num" id="toolRev">$87,975</div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card" style="background: #0b0b10;">
+            <div class="card-title" style="font-size: 1rem; margin-bottom: 12px;">Dynamic Funnel Graph</div>
+            <canvas id="toolFunnelChart" height="200"></canvas>
+          </div>
+          <div class="card" style="background: #0b0b10;">
+            <div class="card-title" style="font-size: 1rem; margin-bottom: 12px;">Live A/B Testing Significance Evaluator</div>
+            <div style="display: flex; gap: 10px; margin-bottom: 12px;">
+              <input type="number" id="abCtrl" value="120" placeholder="Control Purchases" style="width: 50%; padding: 8px; background: var(--surface); color: #fff; border: 1px solid var(--border); border-radius: 8px;">
+              <input type="number" id="abTreat" value="160" placeholder="Treatment Purchases" style="width: 50%; padding: 8px; background: var(--surface); color: #fff; border: 1px solid var(--border); border-radius: 8px;">
+            </div>
+            <button class="btn-tool" style="width: 100%;" onclick="computeSignificance()">
+              Run Two-Proportion Z-Test
+            </button>
+            <div id="abResult" style="margin-top: 14px; font-size: 0.9rem; line-height: 1.5;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================
+         PAGE 3: DATASET SPECIFICATION & SOURCE LINKS
+         ======================================================== -->
+    <div id="page-dataset" class="page-section doc-content">
+      <h2><i class="fa-solid fa-database" style="color: var(--purple-primary);"></i> Dataset Architecture & Source Documentation</h2>
+      
+      <p>This platform is grounded in verifiable event-level e-commerce data from two authoritative sources:</p>
+
+      <div class="card" style="margin-bottom: 24px;">
+        <div class="card-title" style="margin-bottom: 12px;">
+          <i class="fa-brands fa-github"></i> 1. Real Production E-Commerce Event Stream (Bundled)
+        </div>
+        <p style="margin-bottom: 10px;">
+          Direct public clickstream record from an operational retail store, containing <strong>9,381 event actions</strong> across 5,000 unique customer journeys.
+        </p>
+        <ul style="color: var(--text-muted); margin-left: 20px; line-height: 1.8; font-size: 0.95rem;">
+          <li><strong>Direct Raw Source:</strong> <a href="https://raw.githubusercontent.com/prachi-ps/ecommerce-funnel-analysis/main/user_events.csv" target="_blank" style="color: var(--purple-light);">Download Raw CSV (575 KB)</a></li>
+          <li><strong>Source Repository:</strong> <a href="https://github.com/prachi-ps/ecommerce-funnel-analysis" target="_blank" style="color: var(--purple-light);">prachi-ps/ecommerce-funnel-analysis</a></li>
+          <li><strong>Local Repository Path:</strong> <code style="color: #fff; background: var(--surface-elevated); padding: 2px 6px; border-radius: 4px;">data/real_ecommerce_events.csv</code></li>
+          <li><strong>Tracked Dimensions:</strong> <code>event_id</code>, <code>user_id</code>, <code>event_type</code>, <code>event_date</code>, <code>product_id</code>, <code>amount</code>, <code>traffic_source</code>, <code>device_category</code>.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <div class="card-title" style="margin-bottom: 12px;">
+          <i class="fa-brands fa-google"></i> 2. Google Analytics 4 Official E-Commerce Benchmark
+        </div>
+        <p style="margin-bottom: 10px;">
+          Exported event telemetry from Google's flagship Merchandise Store, covering millions of sessions with nested schemas.
+        </p>
+        <ul style="color: var(--text-muted); margin-left: 20px; line-height: 1.8; font-size: 0.95rem;">
+          <li><strong>Official Documentation:</strong> <a href="https://developers.google.com/analytics/bigquery/web-ecommerce-demo-dataset" target="_blank" style="color: var(--purple-light);">Google Developers GA4 BigQuery Demo Dataset</a></li>
+          <li><strong>BigQuery Table Reference:</strong> <code style="color: #fff; background: var(--surface-elevated); padding: 2px 6px; border-radius: 4px;">bigquery-public-data.ga4_obfuscated_sample_ecommerce.events_*</code></li>
+          <li><strong>Temporal Coverage:</strong> November 1, 2020 through January 31, 2021 (92 days).</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ========================================================
+         PAGE 4: METHODOLOGY & SIGNIFICANCE OF METRICS
+         ======================================================== -->
+    <div id="page-methodology" class="page-section doc-content">
+      <h2><i class="fa-solid fa-brain" style="color: var(--purple-primary);"></i> How It Works & Metric Significance</h2>
+
+      <p>Understanding what each metric represents, how it is derived, and what action the product growth team should take:</p>
+
+      <div class="callout">
+        <h4>1. Conversion Funnel & Drop-off Leakages</h4>
+        <p><strong>Definition:</strong> The percentage of unique users who advance from one critical step to the next. Calculated as: <br>
+        <code>Step Drop-off % = (1 - (Sessions at Stage N / Sessions at Stage N-1)) * 100</code>.<br>
+        <strong>Significance:</strong> Identifies where product friction causes abandonment. A high drop from View Item to Cart signals pricing resistance, whereas a high drop from Checkout to Purchase indicates payment friction.</p>
+      </div>
+
+      <div class="callout">
+        <h4>2. The Device Disparity (Mobile vs. Desktop CVR)</h4>
+        <p><strong>Definition:</strong> Ratio of desktop conversion rate to mobile conversion rate.<br>
+        <strong>Significance:</strong> Mobile accounts for ~60% of traffic on modern sites. A 2x disparity is common due to checkout fatigue (typing address and credit cards on small screens). This represents the highest-leverage opportunity for single-tap payment integration (Apple Pay / Google Pay).</p>
+      </div>
+
+      <div class="callout">
+        <h4>3. Statistical Significance & A/B Sample Sizing</h4>
+        <p><strong>Definition:</strong> We compute two-proportion Z-tests with 95% confidence intervals and Wilson score estimation.<br>
+        <strong>Significance:</strong> Prevents false-positive decisions. Historical GA4 data cannot prove causation — only an A/B test with adequate statistical power (80%) and sample size can validate whether an intervention truly drove growth.</p>
+      </div>
     </div>
 
   </main>
 
+  <!-- Footer -->
   <footer>
-    <p>Product Growth Intelligence Platform • Portfolio Project by Dev Chahar • Manipal University Jaipur</p>
-    <p style="margin-top: 6px; opacity: 0.7;">Data Source: Google Analytics 4 Public E-Commerce Sample Dataset (BigQuery)</p>
+    <div>
+      <strong>GrowthOS</strong> — Product Growth Intelligence Platform &bull; Built by <strong>Dev Chahar</strong> (Manipal University Jaipur, Reg: 23FE10CSE00291)
+    </div>
+    <div>
+      <a href="https://github.com/devchahar-byte/product-growth-intelligence" target="_blank" style="color: var(--purple-light); text-decoration: none;">
+        <i class="fa-brands fa-github"></i> GitHub Source Code
+      </a>
+    </div>
   </footer>
 
+  <script>
+    // Tab Page Switcher
+    function switchPage(pageId) {
+      document.querySelectorAll('.page-section').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById(pageId).classList.add('active');
+      event.currentTarget.classList.add('active');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Chart.js Default styling
+    Chart.defaults.color = '#94a3b8';
+    Chart.defaults.font.family = "'Plus Jakarta Sans', sans-serif";
+
+    // Overview Funnel Chart
+    const ctxOvF = document.getElementById('ovFunnelChart').getContext('2d');
+    new Chart(ctxOvF, {
+      type: 'bar',
+      data: {
+        labels: ['Page View', 'Add to Cart', 'Checkout', 'Payment', 'Purchase'],
+        datasets: [{
+          data: [5000, 1553, 1103, 899, 826],
+          backgroundColor: ['#a855f7', '#9333ea', '#7e22ce', '#6b21a8', '#10b981'],
+          borderRadius: 8
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { grid: { color: 'rgba(255,255,255,0.05)' } },
+          y: { grid: { display: false } }
+        }
+      }
+    });
+
+    // Overview Device Chart
+    const ctxOvD = document.getElementById('ovDeviceChart').getContext('2d');
+    new Chart(ctxOvD, {
+      type: 'bar',
+      data: {
+        labels: ['Mobile', 'Desktop', 'Tablet'],
+        datasets: [{
+          label: 'Conversion Rate (%)',
+          data: [16.20, 17.28, 15.08],
+          backgroundColor: ['#c084fc', '#a855f7', '#6b21a8'],
+          borderRadius: 8
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } },
+          x: { grid: { display: false } }
+        }
+      }
+    });
+
+    // Interactive Tool Engine
+    let toolChartInstance = null;
+
+    async function loadRealApiData() {
+      document.getElementById('toolStatus').innerText = "Loading real e-commerce event stream...";
+      try {
+        const resp = await fetch('http://localhost:8501/api/real');
+        const data = await resp.json();
+        renderToolData(data, "Real Public E-Commerce Dataset (9,381 events)");
+      } catch (err) {
+        // Fallback to static values if local server not connected
+        renderToolData({
+          kpis: { unique_sessions: 5000, purchases: 826, cvr: 16.52, total_revenue: 87975 },
+          funnel: [
+            { stage: 'page_view', sessions: 5000 },
+            { stage: 'add_to_cart', sessions: 1553 },
+            { stage: 'checkout_start', sessions: 1103 },
+            { stage: 'purchase', sessions: 826 }
+          ]
+        }, "Real Public Dataset (Offline Fallback)");
+      }
+    }
+
+    async function loadSampleApiData() {
+      document.getElementById('toolStatus').innerText = "Loading GA4 Sample Dataset...";
+      try {
+        const resp = await fetch('http://localhost:8501/api/sample');
+        const data = await resp.json();
+        renderToolData(data, "GA4 Sample Dataset (10,150 events)");
+      } catch (err) {
+        alert("Make sure the local server 'python run_tool.py' is running on port 8501!");
+      }
+    }
+
+    function renderToolData(data, label) {
+      document.getElementById('toolStatus').innerText = "✓ Active: " + label;
+      document.getElementById('toolSessions').innerText = data.kpis.unique_sessions.toLocaleString();
+      document.getElementById('toolPurchases').innerText = data.kpis.purchases.toLocaleString();
+      document.getElementById('toolCVR').innerText = data.kpis.cvr + '%';
+      document.getElementById('toolRev').innerText = '$' + data.kpis.total_revenue.toLocaleString();
+
+      if (toolChartInstance) toolChartInstance.destroy();
+      const ctx = document.getElementById('toolFunnelChart').getContext('2d');
+      toolChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: data.funnel.map(f => f.stage),
+          datasets: [{
+            data: data.funnel.map(f => f.sessions),
+            backgroundColor: '#a855f7',
+            borderRadius: 6
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { grid: { color: 'rgba(255,255,255,0.05)' } },
+            y: { grid: { display: false } }
+          }
+        }
+      });
+    }
+
+    function computeSignificance() {
+      const cA = parseInt(document.getElementById('abCtrl').value) || 0;
+      const cB = parseInt(document.getElementById('abTreat').value) || 0;
+      const n = 5000;
+      const pA = cA / n;
+      const pB = cB / n;
+      const pPool = (cA + cB) / (2 * n);
+      const se = Math.sqrt(pPool * (1 - pPool) * (2 / n));
+      const z = (pB - pA) / se;
+      const pVal = 2 * (1 - normalCdf(Math.abs(z)));
+      const sig = pVal < 0.05;
+
+      document.getElementById('abResult').innerHTML = `
+        Control: <strong>${(pA*100).toFixed(2)}%</strong> | Treatment: <strong>${(pB*100).toFixed(2)}%</strong><br>
+        Lift: <strong>+${(((pB - pA)/pA)*100).toFixed(1)}%</strong> | Z-Score: <strong>${z.toFixed(3)}</strong> | p-value: <strong>${pVal.toFixed(4)}</strong><br>
+        <span style="color: ${sig ? 'var(--success)' : 'var(--danger)'}; font-weight: 700;">
+          ${sig ? '✅ Statistically Significant (p < 0.05)' : '⚠️ Inconclusive (p >= 0.05)'}
+        </span>
+      `;
+    }
+
+    function normalCdf(x) {
+      let t = 1 / (1 + 0.2316419 * Math.abs(x));
+      let d = 0.3989423 * Math.exp(-x * x / 2);
+      let prob = d * t * (0.3193815 + t * (-0.3565638 + t * (1.781478 + t * (-1.821256 + t * 1.330274))));
+      return x > 0 ? 1 - prob : prob;
+    }
+
+    // Auto-init tool on page load
+    window.onload = function() {
+      loadRealApiData();
+    };
+  </script>
 </body>
 </html>
