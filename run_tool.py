@@ -29,13 +29,20 @@ def analyze_events_csv(csv_text_or_file):
     user_txs = {} # user -> {count: 0, rev: 0, last_date: ''}
     
     for r in rows:
-        sess = r.get('session_id') or r.get('user_pseudo_id', 'unknown')
-        user = r.get('user_pseudo_id', 'unknown')
-        ev = r.get('event_name', '')
-        dev = r.get('device_category', 'unknown')
-        ch = r.get('traffic_medium', 'unknown')
-        rev = float(r.get('purchase_revenue', 0.0) or 0.0)
-        dt = r.get('event_date', '')
+        sess = r.get('session_id') or r.get('user_pseudo_id') or r.get('user_id') or 'unknown'
+        user = r.get('user_pseudo_id') or r.get('user_id') or 'unknown'
+        ev = r.get('event_name') or r.get('event_type') or ''
+        dev = r.get('device_category') or r.get('device') or 'desktop'
+        ch = r.get('traffic_medium') or r.get('traffic_source') or r.get('channel') or 'direct'
+        
+        # Revenue extraction
+        rev_raw = r.get('purchase_revenue') or r.get('amount') or r.get('price') or 0.0
+        try:
+            rev = float(rev_raw) if rev_raw and str(rev_raw).strip() != '' else 0.0
+        except ValueError:
+            rev = 0.0
+            
+        dt = r.get('event_date') or r.get('event_timestamp') or ''
         
         sessions.add(sess)
         users.add(user)
@@ -66,8 +73,25 @@ def analyze_events_csv(csv_text_or_file):
             user_txs[user]['rev'] += rev
             user_txs[user]['last_date'] = max(user_txs[user]['last_date'], dt)
 
-    # Funnel calculation
-    stages = ['session_start', 'view_item', 'add_to_cart', 'begin_checkout', 'purchase']
+    # Funnel calculation - detect available stage names
+    all_events = set(events_counter.keys())
+    candidate_stages = [
+        ['session_start', 'page_view', 'view_item'],
+        ['view_item', 'product_view', 'page_view'],
+        ['add_to_cart'],
+        ['begin_checkout', 'checkout_start', 'payment_info'],
+        ['purchase']
+    ]
+    
+    stages = []
+    for cand_group in candidate_stages:
+        matched = next((c for c in cand_group if c in all_events), None)
+        if matched and matched not in stages:
+            stages.append(matched)
+            
+    if not stages:
+        stages = sorted(list(all_events))[:5]
+        
     funnel = []
     top_n = len(sessions)
     prev_n = top_n
@@ -235,8 +259,12 @@ HTML_PAGE = """<!DOCTYPE html>
       </label>
     </div>
 
-    <button class="btn" onclick="loadSampleData()">
-      <i class="fa-solid fa-database"></i> Load Default GA4 Sample
+    <button class="btn" onclick="loadRealData()" style="margin-bottom: 10px; background: linear-gradient(135deg, #10b981, #059669);">
+      <i class="fa-solid fa-chart-line"></i> Load Real E-Commerce Dataset
+    </button>
+
+    <button class="btn" onclick="loadSampleData()" style="background: rgba(255, 255, 255, 0.08); border: 1px solid var(--card-border);">
+      <i class="fa-solid fa-database"></i> Load GA4 Sample Dataset
     </button>
 
     <div style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.5; margin-top: auto; border-top: 1px solid var(--card-border); padding-top: 16px;">
@@ -334,8 +362,16 @@ HTML_PAGE = """<!DOCTYPE html>
     let deviceChartInstance = null;
     let currentData = null;
 
+    async function loadRealData() {
+      document.getElementById('fileLabel').innerText = "Loading real production dataset...";
+      const resp = await fetch('/api/real');
+      const data = await resp.json();
+      renderDashboard(data);
+      document.getElementById('fileLabel').innerText = "Real E-Commerce Dataset Loaded";
+    }
+
     async function loadSampleData() {
-      document.getElementById('fileLabel').innerText = "Loading sample dataset...";
+      document.getElementById('fileLabel').innerText = "Loading GA4 sample dataset...";
       const resp = await fetch('/api/sample');
       const data = await resp.json();
       renderDashboard(data);
@@ -502,6 +538,17 @@ class AnalyticsHandler(BaseHTTPRequestHandler):
             self.send_header('Content-Type', 'text/html; charset=utf-8')
             self.end_headers()
             self.wfile.write(HTML_PAGE.encode('utf-8'))
+        elif url.path == '/api/real':
+            real_file = os.path.join(os.path.dirname(__file__), 'data', 'real_ecommerce_events.csv')
+            if os.path.exists(real_file):
+                with open(real_file, 'r', encoding='utf-8') as f:
+                    res = analyze_events_csv(f)
+            else:
+                res = {"error": "Real dataset file not found"}
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps(res).encode('utf-8'))
         elif url.path == '/api/sample':
             sample_file = os.path.join(os.path.dirname(__file__), 'data', 'sample_ecommerce_events.csv')
             if not os.path.exists(sample_file):
