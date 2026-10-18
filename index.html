@@ -292,9 +292,6 @@
       gap: 24px;
       margin-bottom: 30px;
     }
-    @media (max-width: 900px) {
-      .grid-2 { grid-template-columns: 1fr; }
-    }
 
     .card {
       background: var(--surface);
@@ -302,6 +299,7 @@
       border-radius: var(--radius);
       padding: 28px;
       transition: border-color 0.25s ease;
+      overflow-x: auto;
     }
     .card:hover { border-color: rgba(255, 255, 255, 0.15); }
 
@@ -386,6 +384,12 @@
     }
 
     /* Tables */
+    .table-responsive {
+      width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      margin-bottom: 4px;
+    }
     table {
       width: 100%;
       border-collapse: collapse;
@@ -448,6 +452,217 @@
       gap: 12px;
       background: var(--surface);
     }
+
+    /* ========================================================
+       RESPONSIVE DESIGN (TABLETS & MOBILE SMARTPHONES)
+       Keeps 100% identical styling on PC while making mobile
+       interfaces crystal-clear, high-contrast & touch-friendly.
+       ======================================================== */
+    @media (max-width: 900px) {
+      .grid-2 { grid-template-columns: 1fr; gap: 20px; }
+    }
+
+    @media (max-width: 768px) {
+      /* Navigation Bar Mobile */
+      nav {
+        padding: 12px 16px;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+      .brand {
+        flex: 1;
+      }
+      .brand-name {
+        font-size: 1.05rem;
+      }
+      .brand-tag {
+        font-size: 0.65rem;
+        padding: 1px 6px;
+      }
+      .nav-cta {
+        order: 2;
+      }
+      .btn-outline {
+        padding: 6px 12px;
+        font-size: 0.78rem;
+      }
+      .nav-tabs {
+        order: 3;
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        padding: 3px;
+        gap: 4px;
+      }
+      .nav-tabs::-webkit-scrollbar {
+        display: none;
+      }
+      .nav-btn {
+        padding: 8px 12px;
+        font-size: 0.82rem;
+        flex: 1 0 auto;
+        justify-content: center;
+        white-space: nowrap;
+      }
+
+      /* Main container */
+      main {
+        padding: 18px 12px 60px;
+      }
+
+      /* Hero section */
+      .hero {
+        padding: 16px 0 24px;
+      }
+      .hero-badge {
+        font-size: 0.75rem;
+        padding: 4px 10px;
+        margin-bottom: 12px;
+      }
+      .hero h1 {
+        font-size: 2.1rem;
+        line-height: 1.2;
+        letter-spacing: -0.03em;
+        margin-bottom: 12px;
+        word-break: break-word;
+      }
+      .hero p {
+        font-size: 0.95rem;
+        line-height: 1.5;
+      }
+
+      /* KPI Cards on Mobile: 2x2 Grid with high-contrast background */
+      .kpi-row {
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-bottom: 20px;
+      }
+      .kpi-card {
+        padding: 14px 12px;
+        background: rgba(14, 16, 26, 0.94); /* High opacity for crystal-clear readability */
+      }
+      .kpi-header {
+        margin-bottom: 8px;
+      }
+      .kpi-title {
+        font-size: 0.7rem;
+      }
+      .kpi-num {
+        font-size: 1.45rem;
+      }
+      .kpi-sub {
+        font-size: 0.7rem;
+        margin-top: 4px;
+      }
+
+      /* Cards & Charts */
+      .card {
+        padding: 18px 14px;
+        background: rgba(14, 16, 26, 0.94);
+      }
+      .card-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+        margin-bottom: 14px;
+      }
+      .card-title {
+        font-size: 1rem;
+      }
+      .badge-pill {
+        align-self: flex-start;
+      }
+
+      /* Table density and font on mobile */
+      table {
+        min-width: 320px;
+        font-size: 0.82rem;
+      }
+      th, td {
+        padding: 8px 10px;
+      }
+      th {
+        font-size: 0.72rem;
+      }
+
+      /* Dataset selector strip */
+      .dataset-strip-container {
+        padding: 16px 14px;
+        background: rgba(14, 16, 26, 0.94);
+        margin-bottom: 20px;
+      }
+      .dataset-strip-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+      }
+      #currentDatasetTitle {
+        font-size: 1.05rem !important;
+        word-break: break-word;
+      }
+      .upload-btn {
+        width: 100%;
+        justify-content: center;
+      }
+      .dataset-btn-list {
+        flex-direction: column;
+        gap: 8px;
+      }
+      .ds-btn {
+        width: 100%;
+        justify-content: flex-start;
+        padding: 10px 14px;
+        font-size: 0.84rem;
+      }
+
+      /* Doc content */
+      .doc-content h2 {
+        font-size: 1.4rem;
+        margin: 24px 0 12px;
+      }
+      .doc-content p {
+        font-size: 0.92rem;
+        line-height: 1.6;
+      }
+      .callout {
+        padding: 14px 16px;
+        margin: 16px 0;
+      }
+      .callout h4 {
+        font-size: 0.95rem;
+      }
+      .callout p {
+        font-size: 0.85rem;
+      }
+
+      /* Footer */
+      footer {
+        padding: 20px 16px;
+        flex-direction: column;
+        text-align: center;
+        gap: 10px;
+        font-size: 0.78rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .hero h1 {
+        font-size: 1.7rem;
+      }
+      .kpi-row {
+        grid-template-columns: 1fr;
+      }
+      .brand-tag {
+        display: none;
+      }
+      .nav-cta span.nav-cta-text {
+        display: none;
+      }
+      .nav-cta .btn-outline {
+        padding: 6px 10px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -479,8 +694,8 @@
     </div>
 
     <div class="nav-cta">
-      <a href="https://github.com/devchahar-byte/product-growth-intelligence" target="_blank" class="btn-outline">
-        <i class="fa-brands fa-github"></i> GitHub Repository
+      <a href="https://github.com/devchahar-byte/product-growth-intelligence" target="_blank" class="btn-outline" title="GitHub Repository">
+        <i class="fa-brands fa-github"></i> <span class="nav-cta-text">GitHub</span>
       </a>
     </div>
   </nav>
@@ -562,12 +777,14 @@
             <div class="card-title"><i class="fa-solid fa-triangle-exclamation"></i> Funnel Stage Bottlenecks</div>
             <span class="badge-pill">Step Drop-off</span>
           </div>
-          <table id="ovFunnelTable">
-            <thead>
-              <tr><th>Funnel Stage</th><th>Sessions</th><th>% of Top</th><th>Drop-off</th></tr>
-            </thead>
-            <tbody></tbody>
-          </table>
+          <div class="table-responsive">
+            <table id="ovFunnelTable">
+              <thead>
+                <tr><th>Funnel Stage</th><th>Sessions</th><th>% of Top</th><th>Drop-off</th></tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
           <div id="ovBottleneckText" style="margin-top: 18px; font-size: 0.85rem; color: var(--text-muted); border-top: 1px solid var(--border); padding-top: 12px;"></div>
         </div>
       </div>
@@ -587,12 +804,14 @@
             <div class="card-title"><i class="fa-solid fa-bullhorn"></i> Channel Yield & Acquisition</div>
             <span class="badge-pill">Performance by Channel</span>
           </div>
-          <table id="ovChannelTable">
-            <thead>
-              <tr><th>Traffic Channel</th><th>Sessions</th><th>Purchases</th><th>CVR</th></tr>
-            </thead>
-            <tbody></tbody>
-          </table>
+          <div class="table-responsive">
+            <table id="ovChannelTable">
+              <thead>
+                <tr><th>Traffic Channel</th><th>Sessions</th><th>Purchases</th><th>CVR</th></tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
@@ -623,12 +842,14 @@
             <div class="card-title"><i class="fa-solid fa-triangle-exclamation"></i> Funnel Stage Bottlenecks</div>
             <span class="badge-pill">Drop-off Rates</span>
           </div>
-          <table id="toolFunnelTable">
-            <thead>
-              <tr><th>Funnel Stage</th><th>Sessions</th><th>% of Top</th><th>Drop-off</th></tr>
-            </thead>
-            <tbody></tbody>
-          </table>
+          <div class="table-responsive">
+            <table id="toolFunnelTable">
+              <thead>
+                <tr><th>Funnel Stage</th><th>Sessions</th><th>% of Top</th><th>Drop-off</th></tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
           <div id="toolBottleneckText" style="margin-top: 18px; font-size: 0.85rem; color: var(--text-muted); border-top: 1px solid var(--border); padding-top: 12px;"></div>
         </div>
       </div>
@@ -640,12 +861,14 @@
             <div class="card-title"><i class="fa-solid fa-bullhorn"></i> Channel Yield & Acquisition</div>
             <span class="badge-pill">Channel CVR</span>
           </div>
-          <table id="toolChannelTable">
-            <thead>
-              <tr><th>Traffic Channel</th><th>Sessions</th><th>Purchases</th><th>CVR</th></tr>
-            </thead>
-            <tbody></tbody>
-          </table>
+          <div class="table-responsive">
+            <table id="toolChannelTable">
+              <thead>
+                <tr><th>Traffic Channel</th><th>Sessions</th><th>Purchases</th><th>CVR</th></tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
         </div>
 
         <div class="card">
