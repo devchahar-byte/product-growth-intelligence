@@ -270,7 +270,6 @@ HTML_PAGE = """<!DOCTYPE html>
     <div style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.5; margin-top: auto; border-top: 1px solid var(--card-border); padding-top: 16px;">
       <strong>Dev Chahar</strong><br>
       Manipal University Jaipur<br>
-      Reg: 23FE10CSE00291<br>
       <a href="https://github.com/devchahar-byte/product-growth-intelligence" target="_blank" style="color: var(--primary); text-decoration: none;">GitHub Repository</a>
     </div>
   </aside>

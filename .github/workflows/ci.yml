@@ -1,4 +1,4 @@
-name: SQL Lint & Project Validation
+name: CI & Technical Audit
 
 on:
   push:
@@ -9,7 +9,7 @@ on:
 jobs:
   validate:
     runs-on: ubuntu-latest
-    name: Validate SQL Files and Python
+    name: Validate SQL, Python & Metric Test Suite
 
     steps:
       - name: Checkout repository
@@ -22,22 +22,32 @@ jobs:
 
       - name: Install Python dependencies
         run: |
+          pip install --upgrade pip
+          pip install -r python/scripts/requirements.txt
           pip install sqlfluff pyflakes
 
       - name: Lint SQL files with sqlfluff
         run: |
-          sqlfluff lint sql/ --dialect bigquery --ignore parsing || true
-          echo "SQL lint complete (warnings are non-blocking in portfolio mode)"
+          sqlfluff lint sql/ --dialect bigquery
 
-      - name: Validate Python syntax
+      - name: Compile and validate Python syntax
         run: |
           python -m py_compile python/scripts/stats_helpers.py
-          echo "Python syntax valid"
+          python -m py_compile python/notebooks/01_eda_and_validation.py
+          python -m py_compile app.py
+          python -m py_compile run_tool.py
+          echo "All Python scripts compiled successfully."
 
-      - name: Check required files exist
+      - name: Run statistical and metric unit test suite
+        run: |
+          python -m unittest discover -s python/tests -v
+
+      - name: Verify repository structure and documentation integrity
         run: |
           required_files=(
             "README.md"
+            "LICENSE"
+            ".sqlfluff"
             "sql/01_schema_exploration/01_explore_schema.sql"
             "sql/02_user_session_layer/02_user_session_summary.sql"
             "sql/03_funnel_analysis/03_conversion_funnel.sql"
@@ -47,6 +57,9 @@ jobs:
             "sql/07_data_quality/07_data_quality_checks.sql"
             "python/notebooks/01_eda_and_validation.py"
             "python/scripts/stats_helpers.py"
+            "python/scripts/requirements.txt"
+            "python/tests/test_stats_helpers.py"
+            "python/tests/test_metric_calculations.py"
             "reports/product_growth_report.md"
             "reports/experiment_proposal.md"
             "powerbi/schema/powerbi_schema.md"
@@ -60,4 +73,4 @@ jobs:
               echo "OK: $f"
             fi
           done
-          echo "All required files present."
+          echo "All required files verified present."

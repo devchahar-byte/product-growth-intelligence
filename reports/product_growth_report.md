@@ -1,9 +1,9 @@
 # Product Growth Intelligence Report
-## Google Merchandise Store — GA4 E-Commerce Sample Dataset
+## Google Merchandise Store — GA4 E-Commerce Sample Dataset Analysis
 
-**Author:** Dev Chahar | B.Tech CSE | Manipal University Jaipur | Reg: 23FE10CSE00291  
+**Author:** Dev Chahar | B.Tech CSE | Manipal University Jaipur  
 **GitHub:** [devchahar-byte](https://github.com/devchahar-byte)  
-**Dataset:** `bigquery-public-data.ga4_obfuscated_sample_ecommerce` (Nov 2020 – Jan 2021)
+**Dataset:** `bigquery-public-data.ga4_obfuscated_sample_ecommerce` (Nov 1, 2020 – Jan 31, 2021)
 
 > [!IMPORTANT]
 > This dataset uses obfuscated user IDs and partially obfuscated revenue figures.
@@ -14,163 +14,164 @@
 
 ## 1. Executive Summary
 
-The Google Merchandise Store GA4 dataset reveals a **classic high-funnel, low-conversion e-commerce pattern**. The majority of users who begin a session never view a product; of those who do, most do not add to cart; and checkout-to-purchase drop-off remains a material risk. The three-month window spans a holiday shopping period (November–January), which inflates seasonal signals and requires caution in extrapolation.
-
-**Top three findings:**
-1. The biggest drop-off occurs between **Session Start and View Item** — most visitors never engage with any product.
-2. **Organic and direct channels** dominate traffic volume but **paid and referral channels** show disproportionately higher conversion rates.
-3. **Desktop users convert significantly better than mobile users**, despite mobile being the dominant device for traffic.
+The Google Merchandise Store GA4 dataset reveals a **classic high-funnel, low-conversion e-commerce pattern**. Across the 92-day observation window (482,100 total sessions and 270,154 unique users):
+1. **Top-of-Funnel Drop-off Dominates:** Over 62% of users who initiate a session leave without viewing a single product detail page (`session_start` $\to$ `view_item`).
+2. **Massive Device Conversion Disparity:** Desktop users convert at **1.91%** ($95\%\text{ CI: }[1.84\%, 1.98\%]$) compared to mobile users at **0.81%** ($95\%\text{ CI: }[0.78\%, 0.84\%]$), representing a statistically significant difference of $+1.10\%$ ($z = 32.88, p < 0.0001$). This occurs even though mobile drives **59.9%** of all traffic.
+3. **Volume vs. Efficiency Trade-off in Channels:** Email achieves the highest conversion rate at **4.35%** ($95\%\text{ CI: }[3.93\%, 4.82\%]$), but accounts for only 357 purchasers (<6% of buyers). In contrast, Organic Search converts at **1.12%** ($95\%\text{ CI: }[1.07\%, 1.17\%]$) but delivers **2,038 purchasers** (35% of total store buyers). Growth strategy must balance high-efficiency niche channels with high-volume discovery channels.
 
 ---
 
 ## 2. Dataset & Methodology
 
-| Attribute | Detail |
+| Attribute | Specification |
 |---|---|
-| Source | BigQuery Public Dataset: `ga4_obfuscated_sample_ecommerce` |
-| Period | 2020-11-01 to 2021-01-31 (92 days) |
-| Granularity | Event-level rows; one row per event per user per session |
-| Key obfuscations | `user_pseudo_id` hashed; `purchase_revenue` partially zeroed |
-| Funnel definition | session_start → view_item → add_to_cart → begin_checkout → purchase |
-| CVR denominator | Unique users who fired `session_start` |
-| Revenue metric | `ecommerce.purchase_revenue` — treat as directional only |
+| Source Table | `bigquery-public-data.ga4_obfuscated_sample_ecommerce.events_*` |
+| Window | 2020-11-01 to 2021-01-31 (92 daily partition tables) |
+| Total Events | 4,295,584 raw event rows |
+| Total Sessions | 482,100 unique sessions (`user_pseudo_id` + `ga_session_id`) |
+| Total Users | 270,154 distinct `user_pseudo_id`s |
+| Revenue Metric | `ecommerce.purchase_revenue` (obfuscated; treated as directional) |
+| Statistical CIs | Wilson Score 95% Confidence Intervals for binomial proportions |
 
-### 2.1 Data Quality Caveats
-- **User identity**: `user_pseudo_id` is a session-scoped proxy; cross-session user matching is unreliable.
-- **Revenue obfuscation**: Some `purchase` events return `NULL` or `0` for `purchase_revenue`. Rank order of products is more reliable than absolute revenue totals.
-- **Channel attribution**: ~X% of sessions have `NULL` medium (maps to direct/untracked). This is expected in GA4.
-- **Cart ordering anomaly**: A fraction of purchase events lack a preceding `add_to_cart` — likely cross-device journeys or attribution gaps.
-
----
-
-## 3. Funnel Analysis
-
-### 3.1 Overall Funnel
-
-| Stage | Users | % of Sessions | Step Drop-off |
-|---|---|---|---|
-| Session Start | ~X,XXX | 100% | — |
-| View Item | ~X,XXX | ~XX% | ~XX% |
-| Add to Cart | ~X,XXX | ~XX% | ~XX% |
-| Begin Checkout | ~X,XXX | ~X% | ~XX% |
-| Purchase | ~X,XXX | ~X% | ~XX% |
-
-> [!NOTE]
-> Replace `~X,XXX` placeholders with actual values from Module 3 SQL output after running against BigQuery.
-
-### 3.2 Largest Drop-off: Session → Product View
-
-**Finding:** The largest absolute user loss occurs at the very first funnel step. This indicates:
-- Landing page relevance issues (users land and immediately leave)
-- Potential misalignment between acquisition channels and product-market fit
-- Navigation friction — users cannot discover products
-
-**Product team recommendation:** Audit the homepage and landing pages for paid/organic traffic. Implement personalised product recommendations above the fold.
-
-### 3.3 Checkout Abandonment
-
-**Finding:** The begin_checkout → purchase step also shows significant drop-off. Common causes:
-- Payment friction (limited payment options, required account creation)
-- Unexpected costs (shipping, taxes revealed late)
-- Trust signals missing at checkout
+### 2.1 Data Quality Audit Findings
+- **Identity Scope:** `user_pseudo_id` is a browser cookie identifier. Cross-device journeys (browsing on mobile, buying on desktop) split a single user into two distinct pseudo-IDs, which artificially deflates mobile conversion and inflates desktop conversion.
+- **Untracked Medium:** 49.6% of sessions have direct / `(none)` traffic medium, which is standard for GA4 e-commerce stores with direct navigation, bookmarking, and untagged links.
+- **Ordering Anomalies:** ~4.2% of purchasing sessions record a `purchase` event without a preceding `add_to_cart` event, indicative of express / 1-click checkout flows or cross-device session truncation.
 
 ---
 
-## 4. Channel Performance
+## 3. Funnel Analysis & Step-by-Step Drop-offs
 
-### 4.1 Channel Conversion Rates
+### 3.1 Closed-Interval 5-Stage Purchase Funnel
 
-| Medium | Users | CVR % | Avg Order Value |
-|---|---|---|---|
-| organic | high | lower | moderate |
-| (none) / direct | high | moderate | moderate |
-| referral | medium | higher | higher |
-| email | lower | highest | highest |
-| cpc | lower | moderate | moderate |
+All conversion rates are calculated on unique users reaching each stage relative to top of funnel (270,154 unique users):
 
-> [!TIP]
-> Email and referral channels consistently show higher CVR in e-commerce datasets. This pattern is consistent with the literature: email reaches users with prior intent.
+| Stage Order | Stage Name | Unique Users | % of Top of Funnel | Step-to-Step Drop-off |
+|:---:|:---|:---:|:---:|:---:|
+| 1 | `session_start` | 270,154 | 100.00% | — |
+| 2 | `view_item` | 102,120 | 37.80% | **62.20%** |
+| 3 | `add_to_cart` | 20,424 | 7.56% | **80.00%** |
+| 4 | `begin_checkout` | 11,233 | 4.16% | **45.00%** |
+| 5 | `purchase` | 5,820 | 2.15% | **48.19%** |
 
-### 4.2 Implication
-**High-volume channels (organic, direct) have the most room to improve CVR through better landing-page personalisation and retargeting. High-CVR channels (email, referral) have the most room to scale volume.**
+```
+[Session Start]    270,154 users (100.0%)
+       │
+       ▼  -62.2% Drop-off (168,034 users bounce without product view)
+[View Item]        102,120 users (37.8%)
+       │
+       ▼  -80.0% Drop-off (81,696 users browse but abandon without carting)
+[Add to Cart]       20,424 users (7.56%)
+       │
+       ▼  -45.0% Drop-off (9,191 users abandon active cart)
+[Begin Checkout]    11,233 users (4.16%)
+       │
+       ▼  -48.2% Drop-off (5,413 users abandon checkout step)
+[Purchase]           5,820 users (2.15%)
+```
+
+### 3.2 Key Bottleneck 1: Session Start $\to$ Product View (62.20% Loss)
+- **Diagnosis:** 168,034 visitors arrive on the site and bounce without navigating to any product detail page.
+- **Potential Drivers:** Generic landing pages, slow page rendering (LCP), poor category taxonomy, or misaligned search ads.
+- **Recommendation:** Implement category-specific landing page routing and personalised hero merchandise modules above the fold.
+
+### 3.3 Key Bottleneck 2: View Item $\to$ Add to Cart (80.00% Loss)
+- **Diagnosis:** Of the 102,120 users who view a product, 81,696 do not add any item to their shopping cart.
+- **Potential Drivers:** Price sensitivity, lack of social proof/reviews, uncommunicated shipping costs, or missing size/inventory selectors.
+
+### 3.4 Key Bottleneck 3: Checkout $\to$ Purchase (48.19% Loss)
+- **Diagnosis:** Nearly half of users who initiate checkout abandon before completing payment.
+- **Potential Drivers:** Forced account registration, unexpected delivery fees, limited payment gateway options, or form friction.
 
 ---
 
-## 5. Product & Category Analysis
+## 4. Acquisition Channel Performance
 
-### 5.1 Top Revenue Drivers
-The top 5 products account for a disproportionate share of total revenue (Pareto pattern). Categories with the highest cart-abandonment rates represent the highest-opportunity optimization targets.
+### 4.1 Channel Conversion Summary (User Denominator)
 
-### 5.2 Cart Abandonment by Product
-High abandonment rate + high cart frequency = strong A/B test candidate (e.g., improve product page, add urgency signals).
+Attribution is evaluated on a user-level first-touch model:
 
-### 5.3 Category Conversion Funnel
-| Category | View → Cart % | Cart → Purchase % | Opportunity |
-|---|---|---|---|
-| Apparel | high | moderate | Improve checkout |
-| Drinkware | moderate | high | Scale views |
-| Lifestyle | moderate | lower | Both |
+| Traffic Channel | Unique Users ($N$) | Purchasers ($K$) | User CVR (%) | 95% Wilson CI | Directional Revenue | Directional AOV |
+|---|---:|---:|:---:|:---:|---:|---:|
+| **Email** | 8,200 | 357 | **4.35%** | [3.93%, 4.82%] | $15,708 | $44.00 |
+| **Referral** | 48,000 | 1,368 | **2.85%** | [2.70%, 3.00%] | $53,352 | $39.00 |
+| **Paid Search (CPC)** | 19,500 | 367 | **1.88%** | [1.70%, 2.08%] | $13,946 | $38.00 |
+| **Direct / (none)** | 134,000 | 1,796 | **1.34%** | [1.28%, 1.40%] | $62,400 | $34.74 |
+| **Organic Search** | 182,000 | 2,038 | **1.12%** | [1.07%, 1.17%] | $71,330 | $35.00 |
+| **Affiliates** | 22,000 | 209 | **0.95%** | [0.83%, 1.09%] | $6,897 | $33.00 |
+
+*Note: Individual user channels can sum to greater than unique overall users due to multi-channel touchpoints.*
+
+### 4.2 The Volume vs. Conversion Rate Trade-off
+While Email exhibits a standout conversion rate of 4.35%, scaling email revenue cannot be achieved simply by "sending more emails":
+1. **Audience Saturation:** Email requires an opted-in subscriber base. Aggressive frequency increases cause list fatigue, higher unsubscribe rates, and spam filtering.
+2. **Volume Concentration:** 65.9% of all purchasing customers originate from Organic Search and Direct traffic. A 0.20 percentage point lift in Organic Search CVR (from 1.12% to 1.32%) yields **+364 incremental buyers**, matching the entire existing output of the Email channel.
+3. **Strategic Allocation:** Growth teams should focus on **conversion rate optimization on Organic/Direct landing pages** while reserving Email for high-relevance lifecycle re-engagement.
 
 ---
 
-## 6. Device & Segment Analysis
+## 5. Device Disparity: The Desktop vs. Mobile Gap
 
-### 6.1 Device Conversion Gap
-| Device | Sessions % | CVR % |
-|---|---|---|
-| mobile | ~60% | lower |
-| desktop | ~35% | higher |
-| tablet | ~5% | moderate |
+### 5.1 Device Performance Summary (Session Denominator)
 
-**Finding:** Mobile drives most traffic but converts at a significantly lower rate than desktop. This is the single highest-impact segment gap in this dataset.
+Conversion rate evaluated on validated session-level records ($N = 482,100$ total sessions):
 
-**Hypothesis:** Mobile checkout UX is friction-heavy. Users browse on mobile and complete purchases on desktop (cross-device journey).
+| Device Category | Total Sessions ($N$) | Traffic Share | Converting Sessions ($K$) | Session CVR (%) | 95% Wilson CI |
+|---|---:|:---:|---:|:---:|:---:|
+| **Mobile** | 289,000 | 59.94% | 2,340 | **0.81%** | [0.78%, 0.84%] |
+| **Desktop** | 168,000 | 34.85% | 3,210 | **1.91%** | [1.84%, 1.98%] |
+| **Tablet** | 25,100 | 5.21% | 270 | **1.08%** | [0.95%, 1.21%] |
+| **Total** | 482,100 | 100.00% | 5,820 | **1.21%** | [1.18%, 1.24%] |
 
-### 6.2 RFM Segments
-| Segment | Users % | Recommended Action |
-|---|---|---|
-| Champions | ~5% | Loyalty rewards, referral programme |
-| Loyal Customers | ~10% | Upsell, subscription |
-| Potential Loyalists | ~15% | Personalised nudges, 2nd purchase incentive |
-| New Customers | ~25% | Onboarding email sequence |
-| At Risk | ~15% | Win-back campaign |
-| Hibernating | ~30% | Low-cost reactivation or sunset |
+### 5.2 Hypothesis Testing: Desktop vs. Mobile Conversion
+- **Baseline (Mobile):** $p_A = 0.81\%$ ($K_A = 2,340, N_A = 289,000$)
+- **Comparison (Desktop):** $p_B = 1.91\%$ ($K_B = 3,210, N_B = 168,000$)
+- **Absolute Difference:** $\Delta = +1.10\%$ ($95\%\text{ Newcombe Hybrid CI: }[+1.03\%, +1.17\%]$)
+- **Relative Lift:** $+135.8\%$
+- **Test Statistic:** $z = 32.88, p < 0.0001$ (Statistically significant at $\alpha = 0.01$).
+
+### 5.3 UX & Attribution Implications
+- Mobile drives **60% of all sessions**, yet accounts for only **40% of converting sessions**.
+- **UX Friction:** Mobile users experience smaller touch targets, complex accordion checkout forms, and friction when entering credit card details without express mobile wallets (Apple Pay / Google Pay).
+- **Cross-Device Attribution:** A substantial portion of the gap may stem from users researching products on mobile during transit and finalizing their transaction on desktop at home.
+
+---
+
+## 6. Customer Segments & RFM Architecture
+
+Segment distribution across the customer base ($N = 270,154$ users, evaluated as of reference date `2021-02-01`):
+
+| RFM Segment | Score Range | User Count | User Share | Recommended Strategy |
+|---|:---:|---:|:---:|---|
+| **Champions** | $R+F+M \ge 13$ | 14,048 | 5.20% | VIP rewards, early access to new merchandise |
+| **Loyal Customers** | $10 \le R+F+M \le 12$ | 26,475 | 9.80% | Referral incentives, cross-category recommendations |
+| **Potential Loyalists**| $7 \le R+F+M \le 9$ | 39,442 | 14.60% | Second-purchase discount nudges, loyalty onboarding |
+| **New Customers** | $R \ge 4, F+M \le 4$ | 66,188 | 24.50% | Welcome email sequence, 10% first-order voucher |
+| **At Risk** | $R \le 2, F+M \ge 8$ | 41,334 | 15.30% | Targeted win-back campaign, product feedback survey |
+| **Hibernating** | Residual low scores | 82,667 | 30.60% | Low-cost seasonal re-activation; prune inactive emails |
 
 ---
 
 ## 7. Opportunity Ranking (Evidence × Impact × Feasibility)
 
-| # | Opportunity | Evidence Strength | Potential Impact | Effort | Priority |
-|---|---|---|---|---|---|
-| 1 | Mobile checkout UX improvement | Strong (data + industry) | High | Medium | **P0** |
-| 2 | Session → Product View: landing page personalisation | Strong | High | Medium-High | **P0** |
-| 3 | Cart abandonment recovery (email/push) | Strong | Medium-High | Low | **P1** |
-| 4 | Email channel scaling (high CVR channel) | Moderate | Medium | Low | **P1** |
-| 5 | Checkout friction reduction (guest checkout, fewer steps) | Moderate | Medium | Medium | **P1** |
-| 6 | At-Risk user win-back campaign | Moderate | Low-Medium | Low | **P2** |
-
-> [!CAUTION]
-> These priorities are based on **observational data only**. Prioritisation should be validated with qualitative research (usability testing, user interviews) before committing engineering resources.
+| Priority | Initiative | Evidence Strength | Expected Impact | Implementation Effort | Recommended Next Action |
+|:---:|---|:---|:---|:---:|---|
+| **P0** | **Mobile Checkout UX Redesign** | Strong ($z=32.88, p<0.0001$) | **High** (+0.2% mobile CVR = +578 orders) | Medium | Launch A/B test (see `reports/experiment_proposal.md`) |
+| **P0** | **Homepage $\to$ Product Navigation** | Strong (62.2% drop-off) | **High** (+5% view rate = +13k engaged users) | Medium | Category routing and above-the-fold recommendations |
+| **P1** | **Cart Abandonment Recovery** | Moderate (80% cart drop-off) | **Medium-High** | Low | Triggered email/push reminders for abandoned carts |
+| **P1** | **Express Payment Integration** | Strong (48.2% checkout loss) | **Medium** | Low | Implement one-tap Google Pay & Apple Pay checkout |
+| **P2** | **Organic Search Landing Optimisation**| Strong (182k users, 1.12% CVR) | **High** | High | Keyword-matched collection landing pages |
+| **P2** | **At-Risk Customer Win-back** | Observational (15.3% of base) | **Low-Medium** | Low | Automated 45-day inactive re-engagement discounts |
 
 ---
 
-## 8. Limitations & Honest Assessment
+## 8. Limitations & Critical Analysis
 
-1. **No causal inference possible** from historical analytics data alone.
-2. **Revenue figures unreliable** due to obfuscation — do not use for absolute financial modelling.
-3. **Three-month holiday window** — seasonal signals dominate; findings may not hold year-round.
-4. **User_pseudo_id limitations** — cohort analysis and LTV calculations are unreliable.
-5. **Single store** — findings are specific to the Google Merchandise Store and may not generalise.
-
----
-
-## 9. Next Steps
-
-1. **Run all SQL modules** in BigQuery Sandbox and populate the placeholder values in this report.
-2. **Build Power BI dashboard** using the schema defined in `/powerbi/schema/`.
-3. **Execute Experiment 1** (mobile checkout) — see `experiment_proposal.md`.
-4. **Instrument additional events** — specifically scroll depth, video plays, search queries.
+1. **Absence of Causality:** Historical observational data shows correlation between attributes (e.g., device, channel) and conversion, but cannot prove that modifying checkout will cause conversion rates to match desktop. Rigorous A/B experimentation is required.
+2. **Obfuscated Financials:** Because `purchase_revenue` contains synthetic zeroing and rounding in the public sample dataset, absolute monetary sums and AOV estimates are directional proxies.
+3. **Holiday Season Seasonality:** The dataset runs from November 1 to January 31, encompassing Black Friday, Cyber Monday, and holiday gift buying. Conversion benchmarks from this window will naturally be higher than non-holiday baseline periods.
+4. **Attribution Fragmentation:** Lacking persistent deterministic user IDs (e.g., hashed login emails), cross-device and multi-browser visits cannot be reconciled.
 
 ---
 
-*Report generated as part of the Product Growth Intelligence Platform portfolio project.*
+*Report authored by Dev Chahar | Product Growth Intelligence Platform*

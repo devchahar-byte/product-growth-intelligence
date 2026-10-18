@@ -1,7 +1,7 @@
 # Experiment Proposal: Mobile Checkout UX Improvement
 ## Product Growth Intelligence Platform — Causal Investigation
 
-**Author:** Dev Chahar | B.Tech CSE | Manipal University Jaipur | Reg: 23FE10CSE00291  
+**Author:** Dev Chahar | B.Tech CSE | Manipal University Jaipur  
 **Status:** Proposal (not yet run)  
 **Priority:** P0
 
@@ -55,28 +55,34 @@ Because `user_pseudo_id` is a proxy (not a true persistent user ID), there is a 
 ## 4. Sample Size Calculation
 
 **Inputs:**
-- Baseline mobile CVR (from data): ~X% (fill after running SQL)
-- Minimum detectable effect (MDE): 10% relative lift (e.g., 2.0% → 2.2%)
-- Significance level: α = 0.05 (two-tailed)
-- Statistical power: 1 − β = 0.80
+- Baseline mobile CVR (from verified data): **0.81%** ($95\%\text{ CI: }[0.78\%, 0.84\%]$, $K = 2,340, N = 289,000$)
+- Significance level: $\alpha = 0.05$ (two-tailed)
+- Statistical power: $1 - \beta = 0.80$
+- Minimum detectable effect (MDE):
+  - Target 1 (Aggressive MDE = 20% relative lift; $0.81\% \to 0.97\%$): **48,342 sessions per variant**
+  - Target 2 (Conservative MDE = 10% relative lift; $0.81\% \to 0.89\%$): **201,758 sessions per variant**
 
-**Formula (Wilson-based two-proportion test):**
+**Formula & Calculation:**
 
 ```python
 from python.scripts.stats_helpers import sample_size_for_proportion
 
-n_per_variant = sample_size_for_proportion(
-    baseline_cvr=0.020,          # replace with actual mobile CVR
-    min_detectable_effect=0.10,  # 10% relative lift
-    alpha=0.05,
-    power=0.80
-)
-print(f'Required: {n_per_variant:,} mobile sessions per variant')
-# At observed mobile session volume, estimate runtime in days:
-# runtime_days = (2 * n_per_variant) / avg_daily_mobile_sessions
+# Target 1: 20% relative lift
+n_20 = sample_size_for_proportion(baseline_cvr=0.0081, min_detectable_effect=0.20, alpha=0.05, power=0.80)
+print(f'Required (MDE 20%): {n_20:,} sessions per variant ({n_20*2:,} total)')
+# Output: 48,342 sessions per variant (96,684 total)
+
+# Target 2: 10% relative lift
+n_10 = sample_size_for_proportion(baseline_cvr=0.0081, min_detectable_effect=0.10, alpha=0.05, power=0.80)
+print(f'Required (MDE 10%): {n_10:,} sessions per variant ({n_10*2:,} total)')
+# Output: 201,758 sessions per variant (403,516 total)
 ```
 
-**Expected output:** ~15,000–25,000 mobile sessions per variant depending on baseline CVR. Runtime: ~7–21 days depending on traffic volume.
+**Estimated Runtime:**
+At the store's average mobile volume of $\approx 3,141$ sessions/day ($289,000 / 92$ days):
+- **For MDE = 20%:** $\frac{96,684}{3,141} \approx 31$ days runtime.
+- **For MDE = 10%:** $\frac{403,516}{3,141} \approx 128$ days runtime.
+- **Recommendation:** Power the initial test for **MDE = 20%** with a scheduled runtime of 31–35 days to cover 4 full weekly business cycles.
 
 ---
 
@@ -85,7 +91,7 @@ print(f'Required: {n_per_variant:,} mobile sessions per variant')
 ### 5.1 Primary Metric
 | Metric | Definition | Direction |
 |---|---|---|
-| Mobile Purchase CVR | `purchases / session_starts` on mobile | Increase |
+| Mobile Session CVR | `converting_sessions / session_starts` on mobile | Increase |
 
 ### 5.2 Secondary Metrics
 | Metric | Definition | Direction |

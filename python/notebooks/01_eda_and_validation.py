@@ -1,7 +1,7 @@
 # ==============================================================
 # Product Growth Intelligence Platform
 # Notebook 1: EDA, Schema Validation & Data Quality
-# Author: Dev Chahar | Manipal University Jaipur | Reg: 23FE10CSE00291
+# Author: Dev Chahar | Manipal University Jaipur
 # Dataset: bigquery-public-data.ga4_obfuscated_sample_ecommerce
 #
 # Run as a Python script or paste cells into a Jupyter notebook.
@@ -10,6 +10,7 @@
 
 import os
 import warnings
+from pathlib import Path
 warnings.filterwarnings('ignore')
 
 import pandas as pd
@@ -18,6 +19,12 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as mticker
 import seaborn as sns
 from google.cloud import bigquery
+
+# ── Paths & Output ─────────────────────────────────────────────
+SCRIPT_DIR  = Path(__file__).resolve().parent
+REPO_ROOT   = SCRIPT_DIR.parents[1]
+FIGURES_DIR = REPO_ROOT / 'reports' / 'figures'
+FIGURES_DIR.mkdir(parents=True, exist_ok=True)
 
 # ── Config ─────────────────────────────────────────────────────
 PROJECT_ID = os.getenv('GCP_PROJECT', 'YOUR_PROJECT_ID')  # replace or set env var
@@ -63,7 +70,7 @@ for bar, v in zip(bars, top10['event_count']):
     ax.text(v + max(top10['event_count'])*0.01, bar.get_y()+bar.get_height()/2,
             f'{v:,}', va='center', fontsize=9)
 plt.tight_layout()
-plt.savefig('../reports/fig01_event_inventory.png', dpi=150)
+plt.savefig(FIGURES_DIR / 'fig01_event_inventory.png', dpi=150)
 plt.show()
 print('[1/6] Done. Fig saved: fig01_event_inventory.png')
 
@@ -95,7 +102,7 @@ axes[1].plot(df_daily['event_date'], df_daily['users'],
 axes[1].set_ylabel('Unique Users')
 axes[1].set_xlabel('Date')
 plt.tight_layout()
-plt.savefig('../reports/fig02_daily_volume.png', dpi=150)
+plt.savefig(FIGURES_DIR / 'fig02_daily_volume.png', dpi=150)
 plt.show()
 
 print(f'  Date range: {df_daily.event_date.min().date()} to {df_daily.event_date.max().date()}')
@@ -162,7 +169,7 @@ axes[1].set_xlabel('Unique Users')
 axes[1].set_title('Top Traffic Channels (medium)', fontweight='bold')
 axes[1].invert_yaxis()
 plt.tight_layout()
-plt.savefig('../reports/fig03_device_channel_dist.png', dpi=150)
+plt.savefig(FIGURES_DIR / 'fig03_device_channel_dist.png', dpi=150)
 plt.show()
 print('[4/6] Done. Fig saved: fig03_device_channel_dist.png')
 
@@ -219,7 +226,7 @@ axes[1].set_xlabel('Purchase Revenue (capped at 99th pct)')
 axes[1].set_title('Revenue Box-plot (Outlier View)', fontweight='bold')
 
 plt.tight_layout()
-plt.savefig('../reports/fig04_revenue_distribution.png', dpi=150)
+plt.savefig(FIGURES_DIR / 'fig04_revenue_distribution.png', dpi=150)
 plt.show()
 
 print('\nData Quality Summary')
@@ -275,7 +282,7 @@ for bar, count in zip(bars, counts[::-1]):
 ax.set_xlabel('Unique Users')
 ax.set_title('Purchase Conversion Funnel', fontweight='bold', fontsize=14)
 plt.tight_layout()
-plt.savefig('../reports/fig05_funnel.png', dpi=150)
+plt.savefig(FIGURES_DIR / 'fig05_funnel.png', dpi=150)
 plt.show()
 
 # Drop-off bar
@@ -298,7 +305,7 @@ ax.set_title('Step-by-Step Funnel Drop-off Rates', fontweight='bold', fontsize=1
 ax.set_ylim(0, 105)
 plt.xticks(rotation=10)
 plt.tight_layout()
-plt.savefig('../reports/fig06_dropoff_rates.png', dpi=150)
+plt.savefig(FIGURES_DIR / 'fig06_dropoff_rates.png', dpi=150)
 plt.show()
 
 # ── Device funnel ──────────────────────────────────────────────
@@ -328,7 +335,7 @@ ax.set_title('Purchase Conversion Rate by Device', fontweight='bold')
 for i, (_, row) in enumerate(df_dev_funnel.iterrows()):
     ax.text(i, row['cvr']+0.05, f"{row['cvr']}%", ha='center', fontsize=10)
 plt.tight_layout()
-plt.savefig('../reports/fig07_device_cvr.png', dpi=150)
+plt.savefig(FIGURES_DIR / 'fig07_device_cvr.png', dpi=150)
 plt.show()
 
 print('\nFunnel analysis complete. Figures saved.')
@@ -373,7 +380,7 @@ ax1.set_title('Channel: User Volume vs. Conversion Rate', fontweight='bold')
 plt.xticks(rotation=20)
 fig.legend(loc='upper right', bbox_to_anchor=(0.95, 0.95))
 plt.tight_layout()
-plt.savefig('../reports/fig08_channel_cvr.png', dpi=150)
+plt.savefig(FIGURES_DIR / 'fig08_channel_cvr.png', dpi=150)
 plt.show()
 
 # ── Top products ───────────────────────────────────────────────
@@ -398,9 +405,9 @@ ax.set_xlabel('Total Revenue')
 ax.set_title('Top 15 Products by Purchase Revenue', fontweight='bold')
 for bar, rev in zip(bars, df_prod['revenue'][::-1]):
     ax.text(rev + max(df_prod['revenue'])*0.01, bar.get_y()+bar.get_height()/2,
-            f'\${rev:,.0f}', va='center', fontsize=8)
+            f'${rev:,.0f}', va='center', fontsize=8)
 plt.tight_layout()
-plt.savefig('../reports/fig09_top_products.png', dpi=150)
+plt.savefig(FIGURES_DIR / 'fig09_top_products.png', dpi=150)
 plt.show()
 
 # ── RFM Segment distribution ───────────────────────────────────
@@ -444,7 +451,7 @@ wedges, texts, autotexts = ax.pie(
 )
 ax.set_title('RFM Customer Segments', fontweight='bold', fontsize=13)
 plt.tight_layout()
-plt.savefig('../reports/fig10_rfm_segments.png', dpi=150)
+plt.savefig(FIGURES_DIR / 'fig10_rfm_segments.png', dpi=150)
 plt.show()
 
 print('\nAll analysis notebooks complete.')

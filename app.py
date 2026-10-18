@@ -49,8 +49,47 @@ st.markdown("""
 @st.cache_data
 def load_data(file_path_or_buffer):
     df = pd.read_csv(file_path_or_buffer)
-    df['event_timestamp'] = pd.to_datetime(df['event_timestamp'])
-    df['event_date'] = pd.to_datetime(df['event_date'])
+    # Schema normalization for flexible CSV uploads
+    col_mapping = {
+        'user_id': 'user_pseudo_id',
+        'userId': 'user_pseudo_id',
+        'session': 'session_id',
+        'sessionId': 'session_id',
+        'event': 'event_name',
+        'eventType': 'event_name',
+        'medium': 'traffic_medium',
+        'channel': 'traffic_medium',
+        'device': 'device_category',
+        'device_type': 'device_category',
+        'revenue': 'purchase_revenue',
+        'price': 'purchase_revenue',
+        'timestamp': 'event_timestamp',
+        'date': 'event_date'
+    }
+    df = df.rename(columns={k: v for k, v in col_mapping.items() if k in df.columns and v not in df.columns})
+    
+    if 'event_timestamp' in df.columns:
+        df['event_timestamp'] = pd.to_datetime(df['event_timestamp'])
+    else:
+        df['event_timestamp'] = pd.Timestamp.now()
+        
+    if 'event_date' in df.columns:
+        df['event_date'] = pd.to_datetime(df['event_date'])
+    else:
+        df['event_date'] = pd.to_datetime(df['event_timestamp']).dt.floor('d')
+        
+    if 'session_id' not in df.columns and 'user_pseudo_id' in df.columns:
+        df['session_id'] = df['user_pseudo_id'].astype(str) + '_' + df['event_date'].astype(str)
+        
+    if 'traffic_medium' not in df.columns:
+        df['traffic_medium'] = '(none)'
+    if 'device_category' not in df.columns:
+        df['device_category'] = 'desktop'
+    if 'purchase_revenue' not in df.columns:
+        df['purchase_revenue'] = 0.0
+    else:
+        df['purchase_revenue'] = pd.to_numeric(df['purchase_revenue'], errors='coerce').fillna(0.0)
+        
     return df
 
 # Header
@@ -109,17 +148,18 @@ else:
 total_events = len(filtered_df)
 total_sessions = filtered_df['session_id'].nunique()
 unique_users = filtered_df['user_pseudo_id'].nunique()
-purchases = len(filtered_df[filtered_df['event_name'] == 'purchase'])
+converting_sessions = filtered_df[filtered_df['event_name'] == 'purchase']['session_id'].nunique()
+total_purchases = len(filtered_df[filtered_df['event_name'] == 'purchase'])
 total_revenue = filtered_df['purchase_revenue'].sum()
-overall_cvr = (purchases / total_sessions * 100) if total_sessions > 0 else 0
-aov = (total_revenue / purchases) if purchases > 0 else 0
+overall_cvr = (converting_sessions / total_sessions * 100) if total_sessions > 0 else 0
+aov = (total_revenue / total_purchases) if total_purchases > 0 else 0
 
 c1, c2, c3, c4, c5, c6 = st.columns(6)
 c1.metric("Total Events", f"{total_events:,}")
 c2.metric("Sessions", f"{total_sessions:,}")
 c3.metric("Unique Users", f"{unique_users:,}")
-c4.metric("Purchases", f"{purchases:,}")
-c5.metric("Conversion Rate (CVR)", f"{overall_cvr:.2f}%")
+c4.metric("Converting Sessions", f"{converting_sessions:,}", help=f"Total purchase events: {total_purchases:,}")
+c5.metric("Session CVR", f"{overall_cvr:.2f}%", help="Sessions with >=1 purchase / Total sessions")
 c6.metric("Total Revenue", f"${total_revenue:,.2f}")
 
 st.divider()
@@ -192,14 +232,24 @@ with tab_funnel:
 with tab_channel:
     st.subheader("Acquisition Channel Performance & Efficiency")
     
-    channel_agg = filtered_df.groupby('traffic_medium').agg(
-        sessions=('session_id', 'nunique'),
-        purchases=('event_name', lambda x: (x == 'purchase').sum()),
-        revenue=('purchase_revenue', 'sum')
-    ).reset_index()
-    
-    channel_agg['cvr_pct'] = (channel_agg['purchases'] / channel_agg['sessions'] * 100).round(2)
-    channel_agg['aov'] = (channel_agg['revenue'] / channel_agg['purchases']).replace(np.nan, 0).round(2)
+    channel_summary = []
+    for med, grp in filtered_df.groupby('traffic_medium'):
+        s_count = grp['session_id'].nunique()
+        c_count = grp[grp['event_name'] == 'purchase']['session_id'].nunique()
+        p_events = (grp['event_name'] == 'purchase').sum()
+        rev = grp['purchase_revenue'].sum()
+        cvr = round(100 * c_count / s_count, 2) if s_count > 0 else 0.0
+        aov_val = round(rev / p_events, 2) if p_events > 0 else 0.0
+        channel_summary.append({
+            'traffic_medium': med,
+            'sessions': s_count,
+            'converting_sessions': c_count,
+            'purchases': p_events,
+            'revenue': round(rev, 2),
+            'cvr_pct': cvr,
+            'aov': aov_val
+        })
+    channel_agg = pd.DataFrame(channel_summary)
     
     fig_ch = px.scatter(
         channel_agg,
@@ -210,7 +260,7 @@ with tab_channel:
         hover_name='traffic_medium',
         text='traffic_medium',
         title="Channel Quadrant: Session Volume vs. Conversion Rate % (Size = Revenue)",
-        labels={'sessions': 'Total Sessions', 'cvr_pct': 'Conversion Rate (%)'}
+        labels={'sessions': 'Total Sessions', 'cvr_pct': 'Session CVR (%)'}
     )
     fig_ch.update_traces(textposition='top center')
     st.plotly_chart(fig_ch, use_container_width=True)
@@ -222,13 +272,22 @@ with tab_channel:
 with tab_device:
     st.subheader("Mobile vs. Desktop Conversion Gap")
     
-    dev_agg = filtered_df.groupby('device_category').agg(
-        sessions=('session_id', 'nunique'),
-        purchases=('event_name', lambda x: (x == 'purchase').sum()),
-        revenue=('purchase_revenue', 'sum')
-    ).reset_index()
-    
-    dev_agg['cvr_pct'] = (dev_agg['purchases'] / dev_agg['sessions'] * 100).round(2)
+    dev_summary = []
+    for dev, grp in filtered_df.groupby('device_category'):
+        s_count = grp['session_id'].nunique()
+        c_count = grp[grp['event_name'] == 'purchase']['session_id'].nunique()
+        p_events = (grp['event_name'] == 'purchase').sum()
+        rev = grp['purchase_revenue'].sum()
+        cvr = round(100 * c_count / s_count, 2) if s_count > 0 else 0.0
+        dev_summary.append({
+            'device_category': dev,
+            'sessions': s_count,
+            'converting_sessions': c_count,
+            'purchases': p_events,
+            'revenue': round(rev, 2),
+            'cvr_pct': cvr
+        })
+    dev_agg = pd.DataFrame(dev_summary)
     
     c_pie, c_bar = st.columns(2)
     with c_pie:
@@ -243,12 +302,13 @@ with tab_device:
     d_mob = dev_agg[dev_agg['device_category'] == 'mobile']
     
     if len(d_desk) > 0 and len(d_mob) > 0:
-        c_desk, n_desk = int(d_desk['purchases'].iloc[0]), int(d_desk['sessions'].iloc[0])
-        c_mob, n_mob = int(d_mob['purchases'].iloc[0]), int(d_mob['sessions'].iloc[0])
+        c_desk, n_desk = int(d_desk['converting_sessions'].iloc[0]), int(d_desk['sessions'].iloc[0])
+        c_mob, n_mob = int(d_mob['converting_sessions'].iloc[0]), int(d_mob['sessions'].iloc[0])
         
         stat_res = two_prop_z_test(c_mob, n_mob, c_desk, n_desk)
         
-        st.info(f"**Desktop vs Mobile Z-Test:** Desktop CVR is **{stat_res['cvr_b']*100:.2f}%** vs Mobile CVR of **{stat_res['cvr_a']*100:.2f}%**. Lift: **+{stat_res['lift_pct']}%** (Z-score: {stat_res['z_stat']}, p-value: {stat_res['p_value']:.4e}). Statistically Significant: **{stat_res['significant']}**.")
+        diff_str = f"+{stat_res['lift_pct']}%" if stat_res['lift_pct'] is not None else "undefined"
+        st.info(f"**Desktop vs Mobile Z-Test:** Desktop CVR is **{stat_res['cvr_b']*100:.2f}%** vs Mobile CVR of **{stat_res['cvr_a']*100:.2f}%**. Relative Lift: **{diff_str}** (Diff 95% CI: [{stat_res['diff_ci_lower']*100:.2f}%, {stat_res['diff_ci_upper']*100:.2f}%], Z-score: {stat_res['z_stat']}, p-value: {stat_res['p_value']:.4e}). Statistically Significant: **{stat_res['significant']}**.")
 
 # -------------------------------------------------------------
 # TAB 4: RFM SEGMENTATION
@@ -354,7 +414,7 @@ with tab_dq:
         st.dataframe(null_counts, use_container_width=True)
         
     with dq_col2:
-        st.markdown("### Sequencing Sanity Check")
+        st.markdown("### Sequencing & Timestamp Sanity Check")
         # Check sessions with purchase but no add_to_cart
         session_event_pivot = filtered_df.pivot_table(
             index='session_id',
@@ -364,12 +424,23 @@ with tab_dq:
         )
         if 'purchase' in session_event_pivot and 'add_to_cart' in session_event_pivot:
             skipped_cart = (session_event_pivot['purchase'] > 0) & (session_event_pivot['add_to_cart'] == 0)
-            n_skipped = skipped_cart.sum()
-            total_purchasing_sessions = (session_event_pivot['purchase'] > 0).sum()
+            n_skipped = int(skipped_cart.sum())
+            total_purchasing_sessions = int((session_event_pivot['purchase'] > 0).sum())
             rate = round(100 * n_skipped / total_purchasing_sessions, 2) if total_purchasing_sessions > 0 else 0
             st.write(f"Purchasing sessions without preceding cart event: **{n_skipped:,} / {total_purchasing_sessions:,} ({rate}%)**.")
             st.caption("Commonly caused by 1-click buy or cross-device session tracking loss.")
-        st.success("✅ Timestamp ordering and session integrity validated.")
+        
+        # Real timestamp monotonicity validation within sessions
+        ts_checks = filtered_df.groupby('session_id')['event_timestamp'].agg(['count', lambda s: s.is_monotonic_increasing])
+        ts_checks.columns = ['event_count', 'is_monotonic']
+        multi_event_sessions = ts_checks[ts_checks['event_count'] > 1]
+        non_monotonic_sessions = int((~multi_event_sessions['is_monotonic']).sum())
+        total_multi_sessions = len(multi_event_sessions)
+        
+        if non_monotonic_sessions == 0:
+            st.success(f"✅ Timestamp ordering validated: All {total_multi_sessions:,} multi-event sessions have chronologically ordered events.")
+        else:
+            st.warning(f"⚠️ Timestamp anomaly: {non_monotonic_sessions:,} of {total_multi_sessions:,} multi-event sessions contain out-of-order event timestamps.")
 
 st.markdown("---")
 st.caption("Product Growth Intelligence Platform | Developed by Dev Chahar (Manipal University Jaipur)")
