@@ -784,6 +784,13 @@
       { id: 'sample_ga', name: '3. GA4 Benchmark (10,150 Events)', endpoint: '/api/sample' }
     ];
 
+    // Embedded Fallback Data for Serverless/24/7 Hosting (GitHub Pages / Cloud when PC is off)
+    const BUILTIN_DATA_FALLBACK = {
+      "real_1": {"kpis": {"total_events": 9381, "unique_sessions": 5000, "unique_users": 5000, "purchases": 826, "total_revenue": 87975.11, "cvr": 16.52, "aov": 106.51}, "funnel": [{"stage": "page_view", "sessions": 5000, "pct_of_top": 100.0, "drop_off": 0.0}, {"stage": "add_to_cart", "sessions": 1553, "pct_of_top": 31.06, "drop_off": 68.94}, {"stage": "checkout_start", "sessions": 1103, "pct_of_top": 22.06, "drop_off": 28.98}, {"stage": "purchase", "sessions": 826, "pct_of_top": 16.52, "drop_off": 25.11}], "device_breakdown": [{"device": "mobile", "sessions": 2889, "purchases": 468, "cvr": 16.2}, {"device": "desktop", "sessions": 1806, "purchases": 312, "cvr": 17.28}, {"device": "tablet", "sessions": 305, "purchases": 46, "cvr": 15.08}], "channel_breakdown": [{"channel": "organic", "sessions": 2038, "purchases": 343, "revenue": 37279.98, "cvr": 16.83}, {"channel": "paid_ads", "sessions": 968, "purchases": 204, "revenue": 21487.54, "cvr": 21.07}, {"channel": "email", "sessions": 522, "purchases": 177, "revenue": 17876.75, "cvr": 33.91}, {"channel": "social", "sessions": 1472, "purchases": 102, "revenue": 11330.84, "cvr": 6.93}]},
+      "real_ga": {"kpis": {"total_events": 5241, "unique_sessions": 2556, "unique_users": 2293, "purchases": 43, "total_revenue": 8304.94, "cvr": 1.68, "aov": 193.14}, "funnel": [{"stage": "session_start", "sessions": 2556, "pct_of_top": 100.0, "drop_off": 0.0}, {"stage": "view_item", "sessions": 2556, "pct_of_top": 100.0, "drop_off": 0.0}, {"stage": "add_to_cart", "sessions": 43, "pct_of_top": 1.68, "drop_off": 98.32}, {"stage": "begin_checkout", "sessions": 43, "pct_of_top": 1.68, "drop_off": 0.0}, {"stage": "purchase", "sessions": 43, "pct_of_top": 1.68, "drop_off": 0.0}], "device_breakdown": [{"device": "desktop", "sessions": 1742, "purchases": 41, "cvr": 2.35}, {"device": "mobile", "sessions": 725, "purchases": 2, "cvr": 0.28}, {"device": "tablet", "sessions": 89, "purchases": 0, "cvr": 0.0}], "channel_breakdown": [{"channel": "referral", "sessions": 436, "purchases": 27, "revenue": 4970.72, "cvr": 6.19}, {"channel": "direct", "sessions": 400, "purchases": 8, "revenue": 2523.91, "cvr": 2.0}, {"channel": "organic search", "sessions": 1346, "purchases": 6, "revenue": 692.54, "cvr": 0.45}, {"channel": "paid search", "sessions": 70, "purchases": 1, "revenue": 82.48, "cvr": 1.43}, {"channel": "display", "sessions": 39, "purchases": 1, "revenue": 35.29, "cvr": 2.56}, {"channel": "affiliates", "sessions": 52, "purchases": 0, "revenue": 0.0, "cvr": 0.0}, {"channel": "social", "sessions": 213, "purchases": 0, "revenue": 0.0, "cvr": 0.0}]},
+      "sample_ga": {"kpis": {"total_events": 10150, "unique_sessions": 6000, "unique_users": 3088, "purchases": 206, "total_revenue": 7718.0, "cvr": 3.43, "aov": 37.47}, "funnel": [{"stage": "session_start", "sessions": 6000, "pct_of_top": 100.0, "drop_off": 0.0}, {"stage": "view_item", "sessions": 2705, "pct_of_top": 45.08, "drop_off": 54.92}, {"stage": "add_to_cart", "sessions": 788, "pct_of_top": 13.13, "drop_off": 70.87}, {"stage": "begin_checkout", "sessions": 451, "pct_of_top": 7.52, "drop_off": 42.77}, {"stage": "purchase", "sessions": 206, "pct_of_top": 3.43, "drop_off": 54.32}], "device_breakdown": [{"device": "mobile", "sessions": 3474, "purchases": 47, "cvr": 1.35}, {"device": "desktop", "sessions": 2157, "purchases": 155, "cvr": 7.19}, {"device": "tablet", "sessions": 369, "purchases": 4, "cvr": 1.08}], "channel_breakdown": [{"channel": "organic", "sessions": 2374, "purchases": 84, "revenue": 3062.0, "cvr": 3.54}, {"channel": "direct", "sessions": 1207, "purchases": 43, "revenue": 1741.0, "cvr": 3.56}, {"channel": "referral", "sessions": 919, "purchases": 39, "revenue": 1471.0, "cvr": 4.24}, {"channel": "cpc", "sessions": 1216, "purchases": 31, "revenue": 1056.5, "cvr": 2.55}, {"channel": "email", "sessions": 284, "purchases": 9, "revenue": 387.5, "cvr": 3.17}]}
+    };
+
     let activeDatasetId = 'real_1';
     let userDatasets = []; // [{ id, name, csvText, data }]
 
@@ -830,6 +837,134 @@
       });
     }
 
+    // Client-side CSV Parser & Analytics Engine (runs in browser without Python server)
+    function analyzeEventsCsvClient(csvText) {
+      const lines = csvText.trim().split(/\r?\n/);
+      if (lines.length < 2) return null;
+      const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, '').toLowerCase());
+      
+      const getCol = (row, names) => {
+        for (const n of names) {
+          const idx = headers.indexOf(n.toLowerCase());
+          if (idx !== -1 && row[idx] !== undefined) return row[idx].trim().replace(/^"|"$/g, '');
+        }
+        return '';
+      };
+
+      let totalEvents = 0;
+      const sessions = new Set();
+      const users = new Set();
+      const eventsCounter = {};
+      let purchases = 0;
+      let totalRevenue = 0;
+      const sessionStages = {};
+      const deviceMetrics = {};
+      const channelMetrics = {};
+
+      for (let i = 1; i < lines.length; i++) {
+        if (!lines[i].trim()) continue;
+        const row = lines[i].split(',').map(s => s.trim().replace(/^"|"$/g, ''));
+        totalEvents++;
+        const sess = getCol(row, ['session_id', 'user_pseudo_id', 'user_id']) || ('s_' + i);
+        const user = getCol(row, ['user_pseudo_id', 'user_id', 'session_id']) || ('u_' + i);
+        const ev = getCol(row, ['event_name', 'event_type']) || 'page_view';
+        const dev = getCol(row, ['device_category', 'device']) || 'desktop';
+        const ch = getCol(row, ['traffic_medium', 'traffic_source', 'channel', 'medium']) || 'direct';
+        const revRaw = parseFloat(getCol(row, ['purchase_revenue', 'amount', 'price']) || '0') || 0;
+
+        sessions.add(sess);
+        users.add(user);
+        eventsCounter[ev] = (eventsCounter[ev] || 0) + 1;
+
+        if (!sessionStages[sess]) sessionStages[sess] = new Set();
+        sessionStages[sess].add(ev);
+
+        if (!deviceMetrics[dev]) deviceMetrics[dev] = { sessions: new Set(), purchases: 0 };
+        deviceMetrics[dev].sessions.add(sess);
+
+        if (!channelMetrics[ch]) channelMetrics[ch] = { sessions: new Set(), purchases: 0, revenue: 0 };
+        channelMetrics[ch].sessions.add(sess);
+
+        if (ev.toLowerCase().includes('purchase')) {
+          purchases++;
+          totalRevenue += revRaw;
+          deviceMetrics[dev].purchases++;
+          channelMetrics[ch].purchases++;
+          channelMetrics[ch].revenue += revRaw;
+        }
+      }
+
+      const allEvents = Object.keys(eventsCounter);
+      const candidateStages = [
+        ['session_start', 'page_view', 'view_item'],
+        ['view_item', 'product_view', 'page_view'],
+        ['add_to_cart'],
+        ['begin_checkout', 'checkout_start', 'payment_info'],
+        ['purchase']
+      ];
+      const stages = [];
+      candidateStages.forEach(group => {
+        const matched = group.find(c => allEvents.includes(c));
+        if (matched && !stages.includes(matched)) stages.push(matched);
+      });
+      if (stages.length === 0) stages.push(...allEvents.slice(0, 5));
+
+      const funnel = [];
+      const topN = sessions.size;
+      let prevN = topN;
+      stages.forEach(s => {
+        let n = 0;
+        for (const sess in sessionStages) {
+          if (sessionStages[sess].has(s)) n++;
+        }
+        const pctTop = topN > 0 ? parseFloat(((n / topN) * 100).toFixed(2)) : 0;
+        const dropOff = prevN > 0 ? parseFloat(((1 - (n / prevN)) * 100).toFixed(2)) : 0;
+        funnel.push({ stage: s, sessions: n, pct_of_top: pctTop, drop_off: dropOff });
+        prevN = n;
+      });
+
+      const deviceBreakdown = Object.keys(deviceMetrics).map(d => {
+        const sCnt = deviceMetrics[d].sessions.size;
+        const pCnt = deviceMetrics[d].purchases;
+        return {
+          device: d,
+          sessions: sCnt,
+          purchases: pCnt,
+          cvr: sCnt > 0 ? parseFloat(((pCnt / sCnt) * 100).toFixed(2)) : 0
+        };
+      }).sort((a, b) => b.sessions - a.sessions);
+
+      const channelBreakdown = Object.keys(channelMetrics).map(c => {
+        const sCnt = channelMetrics[c].sessions.size;
+        const pCnt = channelMetrics[c].purchases;
+        return {
+          channel: c,
+          sessions: sCnt,
+          purchases: pCnt,
+          revenue: parseFloat(channelMetrics[c].revenue.toFixed(2)),
+          cvr: sCnt > 0 ? parseFloat(((pCnt / sCnt) * 100).toFixed(2)) : 0
+        };
+      }).sort((a, b) => b.revenue - a.revenue);
+
+      const cvr = topN > 0 ? parseFloat(((purchases / topN) * 100).toFixed(2)) : 0;
+      const aov = purchases > 0 ? parseFloat((totalRevenue / purchases).toFixed(2)) : 0;
+
+      return {
+        kpis: {
+          total_events: totalEvents,
+          unique_sessions: topN,
+          unique_users: users.size,
+          purchases: purchases,
+          total_revenue: parseFloat(totalRevenue.toFixed(2)),
+          cvr: cvr,
+          aov: aov
+        },
+        funnel: funnel,
+        device_breakdown: deviceBreakdown,
+        channel_breakdown: channelBreakdown
+      };
+    }
+
     async function selectDataset(id) {
       activeDatasetId = id;
       renderDatasetButtons();
@@ -840,10 +975,16 @@
         document.getElementById('currentDatasetTitle').innerText = builtin.name;
         try {
           const resp = await fetch(builtin.endpoint);
-          const data = await resp.json();
-          renderActiveData(data);
+          if (resp.ok) {
+            const data = await resp.json();
+            renderActiveData(data);
+            return;
+          }
         } catch (e) {
-          console.error('Fetch error:', e);
+          // If server is not running (e.g. GitHub Pages or PC off), fall back seamlessly
+        }
+        if (BUILTIN_DATA_FALLBACK[id]) {
+          renderActiveData(BUILTIN_DATA_FALLBACK[id]);
         }
       } else {
         // User dataset
@@ -853,13 +994,23 @@
           if (userDs.data) {
             renderActiveData(userDs.data);
           } else if (userDs.csvText) {
-            // Send to analyze endpoint
-            const resp = await fetch('/api/analyze', {
-              method: 'POST',
-              headers: { 'Content-Type': 'text/plain' },
-              body: userDs.csvText
-            });
-            const data = await resp.json();
+            try {
+              const resp = await fetch('/api/analyze', {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain' },
+                body: userDs.csvText
+              });
+              if (resp.ok) {
+                const data = await resp.json();
+                userDs.data = data;
+                saveUserDatasets();
+                renderActiveData(data);
+                return;
+              }
+            } catch (e) {
+              // Fallback to client-side parse
+            }
+            const data = analyzeEventsCsvClient(userDs.csvText);
             userDs.data = data;
             saveUserDatasets();
             renderActiveData(data);
@@ -875,12 +1026,22 @@
       const reader = new FileReader();
       reader.onload = async function(e) {
         const text = e.target.result;
-        const resp = await fetch('/api/analyze', {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain' },
-          body: text
-        });
-        const data = await resp.json();
+        let data = null;
+        try {
+          const resp = await fetch('/api/analyze', {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain' },
+            body: text
+          });
+          if (resp.ok) {
+            data = await resp.json();
+          }
+        } catch (err) {
+          // Fallback to client parse
+        }
+        if (!data) {
+          data = analyzeEventsCsvClient(text);
+        }
 
         const newId = 'user_' + Date.now();
         const newDs = {
